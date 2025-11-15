@@ -6,17 +6,47 @@
     android:background="#FFFFFF"
     android:padding="16dp">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp">
+
+        <TextView
+            android:id="@+id/tvMoves"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Moves: 0"
+            android:textSize="20sp"
+            android:textColor="#333333"
+            android:textStyle="bold"
+            android:gravity="center"/>
+
+        <TextView
+            android:id="@+id/tvTimer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Time: 00:00"
+            android:textSize="20sp"
+            android:textColor="#333333"
+            android:textStyle="bold"
+            android:gravity="center"/>
+
+    </LinearLayout>
+
     <TextView
-        android:id="@+id/tvMoves"
+        android:id="@+id/tvBestScore"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Moves: 0"
-        android:textSize="24sp"
-        android:textColor="#333333"
-        android:textStyle="bold"
+        android:text="No records yet"
+        android:textSize="16sp"
+        android:textColor="#666666"
         android:layout_gravity="center"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"/>
+        android:layout_marginBottom="10dp"/>
 
     <GridLayout
         android:id="@+id/gridLayout"
@@ -31,28 +61,48 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
-        android:layout_marginTop="20dp">
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp">
+
+        <Button
+            android:id="@+id/btnUndo"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_weight="1"
+            android:text="Undo"
+            android:textSize="14sp"
+            android:layout_marginEnd="5dp"
+            android:backgroundTint="#FF9800"/>
 
         <Button
             android:id="@+id/btnShuffle"
             android:layout_width="0dp"
             android:layout_height="60dp"
             android:layout_weight="1"
-            android:text="Shuffle"
-            android:textSize="16sp"
-            android:layout_marginEnd="10dp"
+            android:text="New Game"
+            android:textSize="14sp"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
             android:backgroundTint="#2196F3"/>
 
         <Button
-            android:id="@+id/btnBack"
+            android:id="@+id/btnStats"
             android:layout_width="0dp"
             android:layout_height="60dp"
             android:layout_weight="1"
-            android:text="Back to Menu"
-            android:textSize="16sp"
-            android:layout_marginStart="10dp"
-            android:backgroundTint="#9E9E9E"/>
+            android:text="Stats"
+            android:textSize="14sp"
+            android:layout_marginStart="5dp"
+            android:backgroundTint="#4CAF50"/>
 
     </LinearLayout>
+
+    <Button
+        android:id="@+id/btnBack"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Back to Menu"
+        android:textSize="16sp"
+        android:backgroundTint="#9E9E9E"/>
 
 </LinearLayout>

@@ -14,40 +14,86 @@
         android:textSize="42sp"
         android:textColor="#333333"
         android:textStyle="bold"
-        android:layout_marginBottom="50dp"/>
+        android:layout_marginBottom="20dp"/>
+
+    <TextView
+        android:id="@+id/tvTotalStars"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="⭐ 0 Stars"
+        android:textSize="24sp"
+        android:textColor="#FFD700"
+        android:textStyle="bold"
+        android:layout_marginBottom="40dp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Select Difficulty"
+        android:text="Select Mode"
         android:textSize="20sp"
         android:textColor="#666666"
-        android:layout_marginBottom="30dp"/>
+        android:layout_marginBottom="20dp"/>
 
     <Button
-        android:id="@+id/btnEasy"
-        android:layout_width="250dp"
-        android:layout_height="60dp"
-        android:text="Easy (3x3)"
+        android:id="@+id/btnClassic"
+        android:layout_width="280dp"
+        android:layout_height="70dp"
+        android:text="🎮 Classic Mode"
         android:textSize="18sp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="15dp"
         android:backgroundTint="#4CAF50"/>
 
-    <Button
-        android:id="@+id/btnMedium"
-        android:layout_width="250dp"
-        android:layout_height="60dp"
-        android:text="Medium (4x4)"
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Story Modes"
         android:textSize="18sp"
-        android:layout_marginBottom="20dp"
-        android:backgroundTint="#FF9800"/>
+        android:textColor="#666666"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="15dp"/>
 
     <Button
-        android:id="@+id/btnHard"
-        android:layout_width="250dp"
-        android:layout_height="60dp"
-        android:text="Hard (5x5)"
+        android:id="@+id/btnOnePiece"
+        android:layout_width="280dp"
+        android:layout_height="65dp"
+        android:text="🏴‍☠️ One Piece"
         android:textSize="18sp"
-        android:backgroundTint="#F44336"/>
+        android:layout_marginBottom="12dp"
+        android:backgroundTint="#FF6B35"/>
+
+    <Button
+        android:id="@+id/btnDragonBall"
+        android:layout_width="280dp"
+        android:layout_height="65dp"
+        android:text="🐉 Dragon Ball Z"
+        android:textSize="18sp"
+        android:layout_marginBottom="12dp"
+        android:backgroundTint="#FFA500"/>
+
+    <Button
+        android:id="@+id/btnBleach"
+        android:layout_width="280dp"
+        android:layout_height="65dp"
+        android:text="⚔️ Bleach"
+        android:textSize="18sp"
+        android:layout_marginBottom="25dp"
+        android:backgroundTint="#4169E1"/>
+
+    <Button
+        android:id="@+id/btnViewStats"
+        android:layout_width="280dp"
+        android:layout_height="60dp"
+        android:text="📊 Statistics"
+        android:textSize="16sp"
+        android:layout_marginBottom="10dp"
+        android:backgroundTint="#9E9E9E"/>
+
+    <Button
+        android:id="@+id/btnSettings"
+        android:layout_width="280dp"
+        android:layout_height="60dp"
+        android:text="⚙️ Settings"
+        android:textSize="16sp"
+        android:backgroundTint="#607D8B"/>
 
 </LinearLayout>

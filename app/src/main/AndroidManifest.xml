@@ -12,6 +12,24 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Slidr">
         <activity
+            android:name=".SettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ArcDifficultyActivity"
+            android:exported="false" />
+        <activity
+            android:name=".StatisticsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ImageGameActivity"
+            android:exported="false" />
+        <activity
+            android:name=".StoryModeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DifficultyActivity"
+            android:exported="false" />
+        <activity
             android:name=".GameActivity"
             android:exported="false" />
         <activity
