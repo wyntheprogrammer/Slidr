@@ -89,7 +89,7 @@ public class ImageGameActivity extends AppCompatActivity {
 
         loadImage();
         initializeGame();
-//        startArcMusic(); // NEW: Play music for this arc
+        startArcMusic(); // NEW: Play music for this arc
 
         shuffleBtn.setOnClickListener(v -> {
             new AlertDialog.Builder(this)
@@ -465,4 +465,25 @@ public class ImageGameActivity extends AppCompatActivity {
         super.onDestroy();
         stopTimer();
     }
+
+
+    // Add this method at the end of the class, before the final }
+    private void startArcMusic() {
+        new Thread(() -> {
+            try {
+                com.example.slidr.database.GameSettings settings = database.gameDao().getSettings();
+                if (settings != null && settings.isMusicEnabled()) {
+                    com.example.slidr.database.MusicTrack track = database.gameDao().getMusicForArc(storyId, arcIndex);
+                    if (track != null && track.isUnlocked()) {
+                        runOnUiThread(() -> {
+                            MusicManager.playMusic(this, track.getMusicResId());
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
 }

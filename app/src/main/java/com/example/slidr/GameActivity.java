@@ -441,6 +441,11 @@ public class GameActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         MusicManager.resumeMusic(); // NEW: Resume music
+
+        // If music was never started, start it
+        if (!MusicManager.isPlaying()) {
+            startBackgroundMusic();
+        }
     }
 
     @Override

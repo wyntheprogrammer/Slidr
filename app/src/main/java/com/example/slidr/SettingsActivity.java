@@ -49,13 +49,32 @@ public class SettingsActivity extends AppCompatActivity {
                 musicRadioGroup.getChildAt(i).setEnabled(isChecked);
             }
 
-            // NEW: Stop music if disabled
+            // NEW: Handle music toggle
             if (!isChecked) {
                 MusicManager.stopMusic();
+            } else {
+                // When turning music ON, start playing selected track
+                if (settings.getSelectedMusicId() != -1) {
+                    new Thread(() -> {
+                        MusicTrack track = database.gameDao().getMusicTrack(settings.getSelectedMusicId());
+                        if (track != null && track.isUnlocked()) {
+                            runOnUiThread(() -> {
+                                MusicManager.playMusic(this, track.getMusicResId());
+                            });
+                        }
+                    }).start();
+                }
             }
         });
 
         backBtn.setOnClickListener(v -> finish());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Reload tracks to refresh unlock status
+        loadMusicTracks();
     }
 
     private void loadSettings() {
@@ -101,6 +120,7 @@ public class SettingsActivity extends AppCompatActivity {
 
                     radioButton.setId(track.getId());
                     radioButton.setEnabled(track.isUnlocked() && settings.isMusicEnabled());
+                    radioButton.setClickable(track.isUnlocked()); // NEW: Prevent clicking locked tracks
                     radioButton.setTextSize(16);
                     radioButton.setPadding(20, 20, 20, 20);
 
