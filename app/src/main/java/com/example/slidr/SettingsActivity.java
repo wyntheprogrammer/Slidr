@@ -1,9 +1,7 @@
 package com.example.slidr;
 
 import android.os.Bundle;
-import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Switch;

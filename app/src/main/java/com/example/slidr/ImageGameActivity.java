@@ -31,7 +31,7 @@ public class ImageGameActivity extends AppCompatActivity {
 
     private GridLayout gridLayout;
     private ImageButton[][] buttons;
-    private int gridSize; // Now dynamic based on difficulty
+    private int gridSize;
     private int emptyRow, emptyCol;
     private int moves = 0;
     private TextView movesText, timerText, difficultyText;
@@ -46,12 +46,12 @@ public class ImageGameActivity extends AppCompatActivity {
     private int arcIndex;
     private String arcName;
     private int imageResId;
-    private String difficulty; // "easy", "medium", "hard"
-    private int starsToEarn; // 1, 2, or 3
+    private String difficulty;
+    private int starsToEarn;
 
     private Bitmap fullImage;
     private Bitmap[] imageTiles;
-    private int[] currentTileOrder; // Track current tile positions
+    private int[] currentTileOrder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +66,7 @@ public class ImageGameActivity extends AppCompatActivity {
         imageResId = getIntent().getIntExtra("IMAGE_RES_ID", 0);
         difficulty = getIntent().getStringExtra("DIFFICULTY");
         starsToEarn = getIntent().getIntExtra("STARS_TO_EARN", 1);
-        gridSize = getIntent().getIntExtra("GRID_SIZE", 4); // Get grid size from intent
+        gridSize = getIntent().getIntExtra("GRID_SIZE", 4);
 
         gridLayout = findViewById(R.id.gridLayout);
         movesText = findViewById(R.id.tvMoves);
@@ -89,7 +89,7 @@ public class ImageGameActivity extends AppCompatActivity {
 
         loadImage();
         initializeGame();
-        startArcMusic(); // NEW: Play music for this arc
+        startArcMusic();
 
         shuffleBtn.setOnClickListener(v -> {
             new AlertDialog.Builder(this)
@@ -136,7 +136,6 @@ public class ImageGameActivity extends AppCompatActivity {
                 int index = i * gridSize + j;
 
                 if (i == gridSize - 1 && j == gridSize - 1) {
-                    // Empty tile
                     imageTiles[index] = Bitmap.createBitmap(tileSize, tileSize, Bitmap.Config.ARGB_8888);
                     Canvas canvas = new Canvas(imageTiles[index]);
                     canvas.drawColor(Color.LTGRAY);
@@ -149,7 +148,6 @@ public class ImageGameActivity extends AppCompatActivity {
                             tileSize
                     );
 
-                    // Add number overlay
                     imageTiles[index] = addNumberOverlay(imageTiles[index], index + 1);
                 }
             }
@@ -228,7 +226,6 @@ public class ImageGameActivity extends AppCompatActivity {
         if (isAdjacent(row, col, emptyRow, emptyCol)) {
             swapTiles(row, col, emptyRow, emptyCol);
 
-            // Update tracking array
             int clickedIndex = row * gridSize + col;
             int emptyIndex = emptyRow * gridSize + emptyCol;
             int temp = currentTileOrder[clickedIndex];
@@ -269,7 +266,6 @@ public class ImageGameActivity extends AppCompatActivity {
             Collections.shuffle(numbers);
         } while (!isSolvable(numbers));
 
-        // Reset the tracking array and apply shuffle
         int index = 0;
         for (int i = 0; i < gridSize; i++) {
             for (int j = 0; j < gridSize; j++) {
@@ -286,7 +282,6 @@ public class ImageGameActivity extends AppCompatActivity {
             }
         }
 
-        // Reset empty position
         emptyRow = gridSize - 1;
         emptyCol = gridSize - 1;
     }
@@ -302,10 +297,8 @@ public class ImageGameActivity extends AppCompatActivity {
         }
 
         if (gridSize % 2 == 1) {
-            // Odd grid (3x3, 5x5): solvable if inversions is even
             return inversions % 2 == 0;
         } else {
-            // Even grid (4x4): more complex check
             return (inversions + gridSize) % 2 == 1;
         }
     }
@@ -322,7 +315,7 @@ public class ImageGameActivity extends AppCompatActivity {
     private void onGameCompleted() {
         long timeInSeconds = elapsedTime / 1000;
 
-        // Update database - always reward stars based on difficulty
+        // Update database - reward stars based on difficulty
         new Thread(() -> {
             PuzzleUnlock unlock = database.gameDao().getPuzzleUnlock(storyId, arcIndex);
 
@@ -333,16 +326,13 @@ public class ImageGameActivity extends AppCompatActivity {
                 unlock.setStarsEarned(starsToEarn);
                 earnedNewStars = true;
 
-                // Update total stars
+                // Award stars to user progress
                 UserProgress progress = database.gameDao().getUserProgress();
                 progress.setTotalStars(progress.getTotalStars() + starDifference);
                 database.gameDao().updateUserProgress(progress);
 
                 // Unlock music for this arc
                 unlockMusic(storyId, arcIndex);
-
-                // Check and unlock next arc
-                unlockNextArc(progress.getTotalStars());
             }
 
             // Always update best scores
@@ -365,25 +355,6 @@ public class ImageGameActivity extends AppCompatActivity {
         if (track != null && !track.isUnlocked()) {
             track.setUnlocked(true);
             database.gameDao().updateMusicTrack(track);
-        }
-    }
-
-    private void unlockNextArc(int totalStars) {
-        // Get all story modes and check what can be unlocked
-        String[] stories = {"onepiece", "dragonball", "bleach"};
-
-        for (String story : stories) {
-            List<PuzzleUnlock> unlocks = database.gameDao().getStoryModeProgress(story);
-            com.example.slidr.models.StoryData.StoryMode mode =
-                    com.example.slidr.models.StoryData.getStoryMode(story);
-
-            for (int i = 0; i < unlocks.size(); i++) {
-                PuzzleUnlock unlock = unlocks.get(i);
-                if (!unlock.isUnlocked() && totalStars >= mode.arcs[i].starsRequired) {
-                    unlock.setUnlocked(true);
-                    database.gameDao().updatePuzzleUnlock(unlock);
-                }
-            }
         }
     }
 
@@ -416,7 +387,6 @@ public class ImageGameActivity extends AppCompatActivity {
                 .show();
     }
 
-    // Timer methods
     private void startTimer() {
         startTime = System.currentTimeMillis();
         isTimerRunning = true;
@@ -466,8 +436,6 @@ public class ImageGameActivity extends AppCompatActivity {
         stopTimer();
     }
 
-
-    // Add this method at the end of the class, before the final }
     private void startArcMusic() {
         new Thread(() -> {
             try {
@@ -485,5 +453,4 @@ public class ImageGameActivity extends AppCompatActivity {
             }
         }).start();
     }
-
 }

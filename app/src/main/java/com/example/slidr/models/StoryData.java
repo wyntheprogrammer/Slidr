@@ -37,7 +37,7 @@ public class StoryData {
                         "onepiece",
                         "One Piece",
                         new Arc[] {
-                                new Arc("East Blue Saga", R.drawable.onepiece_arc1, 0),
+                                new Arc("East Blue Saga", R.drawable.onepiece_arc1, 0), // FREE
                                 new Arc("Alabasta Saga", R.drawable.onepiece_arc2, 3),
                                 new Arc("Enies Lobby Saga", R.drawable.onepiece_arc3, 6),
                                 new Arc("Marineford Saga", R.drawable.onepiece_arc4, 9)
@@ -48,7 +48,7 @@ public class StoryData {
                         "dragonball",
                         "Dragon Ball Z",
                         new Arc[] {
-                                new Arc("Saiyan Saga", R.drawable.dragonball_arc1, 0),
+                                new Arc("Saiyan Saga", R.drawable.dragonball_arc1, 0), // FREE
                                 new Arc("Frieza Saga", R.drawable.dragonball_arc2, 3),
                                 new Arc("Cell Saga", R.drawable.dragonball_arc3, 6),
                                 new Arc("Buu Saga", R.drawable.dragonball_arc4, 9)
@@ -59,7 +59,7 @@ public class StoryData {
                         "bleach",
                         "Bleach",
                         new Arc[] {
-                                new Arc("Soul Society Arc", R.drawable.bleach_arc1, 0),
+                                new Arc("Soul Society Arc", R.drawable.bleach_arc1, 0), // FREE
                                 new Arc("Arrancar Arc", R.drawable.bleach_arc2, 3),
                                 new Arc("Fullbring Arc", R.drawable.bleach_arc3, 6),
                                 new Arc("Quincy War Arc", R.drawable.bleach_arc4, 9)

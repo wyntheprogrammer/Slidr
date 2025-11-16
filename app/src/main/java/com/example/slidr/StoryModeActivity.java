@@ -11,6 +11,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.slidr.database.AppDatabase;
@@ -27,6 +28,7 @@ public class StoryModeActivity extends AppCompatActivity {
     private StoryData.StoryMode storyMode;
     private LinearLayout arcsContainer;
     private TextView starsText;
+    private int currentTotalStars;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,8 +61,9 @@ public class StoryModeActivity extends AppCompatActivity {
         new Thread(() -> {
             UserProgress progress = database.gameDao().getUserProgress();
             if (progress != null) {
+                currentTotalStars = progress.getTotalStars();
                 runOnUiThread(() -> {
-                    starsText.setText("⭐ " + progress.getTotalStars() + " Stars");
+                    starsText.setText("⭐ " + currentTotalStars + " Stars");
                 });
             }
         }).start();
@@ -123,9 +126,6 @@ public class StoryModeActivity extends AppCompatActivity {
         arcName.setText(arc.name);
         arcName.setTextSize(18);
         arcName.setTextColor(0xFF333333);
-        // Incorrect line
-        // arcName.setTextStyle(android.graphics.Typeface.BOLD);
-        // Correct line:
         arcName.setTypeface(null, android.graphics.Typeface.BOLD);
 
         TextView statusText = new TextView(this);
@@ -134,7 +134,7 @@ public class StoryModeActivity extends AppCompatActivity {
             statusText.setText(stars + " | " + unlock.getStarsEarned() + "/3 Stars");
             statusText.setTextColor(0xFF4CAF50);
         } else {
-            statusText.setText("🔒 Requires " + arc.starsRequired + " stars");
+            statusText.setText("🔒 Costs " + arc.starsRequired + " stars to unlock");
             statusText.setTextColor(0xFF999999);
         }
         statusText.setTextSize(14);
@@ -143,35 +143,78 @@ public class StoryModeActivity extends AppCompatActivity {
         infoLayout.addView(arcName);
         infoLayout.addView(statusText);
 
-        // Play button
-        Button playBtn = new Button(this);
+        // Action button (Play or Unlock)
+        Button actionBtn = new Button(this);
         LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
-        playBtn.setLayoutParams(btnParams);
-        playBtn.setText(unlock.isUnlocked() ? "Play" : "Locked");
-        playBtn.setEnabled(unlock.isUnlocked());
-        playBtn.setBackgroundColor(unlock.isUnlocked() ? storyMode.color : 0xFF999999);
-        playBtn.setTextColor(Color.WHITE);
+        actionBtn.setLayoutParams(btnParams);
 
-        playBtn.setOnClickListener(v -> {
-            if (unlock.isUnlocked()) {
+        if (unlock.isUnlocked()) {
+            actionBtn.setText("Play");
+            actionBtn.setBackgroundColor(storyMode.color);
+            actionBtn.setTextColor(Color.WHITE);
+            actionBtn.setOnClickListener(v -> {
                 Intent intent = new Intent(this, ArcDifficultyActivity.class);
                 intent.putExtra("STORY_ID", storyId);
                 intent.putExtra("ARC_INDEX", arcIndex);
                 intent.putExtra("ARC_NAME", arc.name);
                 intent.putExtra("IMAGE_RES_ID", arc.imageResId);
                 startActivity(intent);
-            } else {
-                Toast.makeText(this, "Need " + arc.starsRequired + " stars to unlock", Toast.LENGTH_SHORT).show();
-            }
-        });
+            });
+        } else {
+            actionBtn.setText("Unlock");
+            actionBtn.setBackgroundColor(0xFF2196F3);
+            actionBtn.setTextColor(Color.WHITE);
+            actionBtn.setOnClickListener(v -> showUnlockDialog(arc, unlock, arcIndex));
+        }
 
         card.addView(imageView);
         card.addView(infoLayout);
-        card.addView(playBtn);
+        card.addView(actionBtn);
 
         arcsContainer.addView(card);
+    }
+
+    private void showUnlockDialog(StoryData.Arc arc, PuzzleUnlock unlock, int arcIndex) {
+        // Check if user has enough stars
+        if (currentTotalStars < arc.starsRequired) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Not Enough Stars")
+                    .setMessage(String.format("You need %d stars to unlock %s.\n\nYou currently have %d stars.\nNeed %d more stars!",
+                            arc.starsRequired, arc.name, currentTotalStars, arc.starsRequired - currentTotalStars))
+                    .setPositiveButton("OK", null)
+                    .show();
+            return;
+        }
+
+        // Show confirmation dialog
+        new AlertDialog.Builder(this)
+                .setTitle("Unlock Arc")
+                .setMessage(String.format("Unlock %s?\n\nCost: %d ⭐\nYour Stars: %d ⭐\nRemaining: %d ⭐",
+                        arc.name, arc.starsRequired, currentTotalStars, currentTotalStars - arc.starsRequired))
+                .setPositiveButton("Unlock", (dialog, which) -> unlockArc(arc, unlock, arcIndex))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void unlockArc(StoryData.Arc arc, PuzzleUnlock unlock, int arcIndex) {
+        new Thread(() -> {
+            // Deduct stars from user progress
+            UserProgress progress = database.gameDao().getUserProgress();
+            progress.setTotalStars(progress.getTotalStars() - arc.starsRequired);
+            database.gameDao().updateUserProgress(progress);
+
+            // Unlock the arc
+            unlock.setUnlocked(true);
+            database.gameDao().updatePuzzleUnlock(unlock);
+
+            runOnUiThread(() -> {
+                Toast.makeText(this, arc.name + " unlocked! " + arc.starsRequired + " stars spent.", Toast.LENGTH_LONG).show();
+                loadTotalStars();
+                loadArcs();
+            });
+        }).start();
     }
 }
