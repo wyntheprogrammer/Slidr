@@ -336,8 +336,7 @@ public class ImageGameActivity extends AppCompatActivity {
                 progress.setTotalStars(progress.getTotalStars() + starDifference);
                 database.gameDao().updateUserProgress(progress);
 
-                // Check and unlock music if user now has 2+ stars
-                checkAndUnlockMusic(storyId, arcIndex, progress.getTotalStars());
+                // REMOVED: checkAndUnlockMusic() - Music is only unlocked in Settings by spending stars
             }
 
             // Always update best scores
@@ -356,22 +355,7 @@ public class ImageGameActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void checkAndUnlockMusic(String storyId, int arcIndex, int totalStars) {
-        // Get the current user's music track for this arc
-        User currentUser = database.gameDao().getLoggedInUser();
-        if (currentUser == null) {
-            return; // Guest mode, no music unlock
-        }
-
-        MusicTrack track = database.gameDao().getMusicForArcByUser(
-                currentUser.getId(), storyId, arcIndex
-        );
-
-        if (track != null && !track.isUnlocked() && totalStars >= 2) {
-            track.setUnlocked(true);
-            database.gameDao().updateMusicTrack(track);
-        }
-    }
+    // REMOVED: checkAndUnlockMusic() method - Music unlock is only handled in SettingsActivity
 
     private void showSuccessDialog(int stars, long timeInSeconds, boolean earnedNewStars, int starDifference, int previousStars) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -404,27 +388,8 @@ public class ImageGameActivity extends AppCompatActivity {
                     previousStars,
                     stars);
 
-            // Check if music was unlocked
-            new Thread(() -> {
-                UserProgress progress = database.gameDao().getUserProgress();
-                User currentUser = database.gameDao().getLoggedInUser();
-
-                if (progress != null && currentUser != null && progress.getTotalStars() >= 2) {
-                    MusicTrack track = database.gameDao().getMusicForArcByUser(
-                            currentUser.getId(), storyId, arcIndex
-                    );
-
-                    if (track != null && track.isUnlocked()) {
-                        runOnUiThread(() -> {
-                            rewardText.setText(rewardMessage + "\n🎵 Music Unlocked!");
-                        });
-                        return;
-                    }
-                }
-                runOnUiThread(() -> {
-                    rewardText.setText(rewardMessage);
-                });
-            }).start();
+            // REMOVED: Music unlock message - Music is only unlocked in Settings
+            rewardText.setText(rewardMessage);
         } else {
             rewardText.setVisibility(View.VISIBLE);
             rewardText.setText("Already earned " + stars + " star" + (stars > 1 ? "s" : "") + " on this difficulty");
