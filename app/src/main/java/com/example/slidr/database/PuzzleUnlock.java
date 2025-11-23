@@ -8,6 +8,7 @@ public class PuzzleUnlock {
     @PrimaryKey(autoGenerate = true)
     private int id;
 
+    private int userId; // Link to User table
     private String storyMode; // "onepiece", "dragonball", "bleach"
     private int arcIndex;
     private boolean unlocked;
@@ -15,7 +16,8 @@ public class PuzzleUnlock {
     private int bestMoves;
     private long bestTime;
 
-    public PuzzleUnlock(String storyMode, int arcIndex, boolean unlocked, int starsEarned) {
+    public PuzzleUnlock(int userId, String storyMode, int arcIndex, boolean unlocked, int starsEarned) {
+        this.userId = userId;
         this.storyMode = storyMode;
         this.arcIndex = arcIndex;
         this.unlocked = unlocked;
@@ -27,6 +29,9 @@ public class PuzzleUnlock {
     // Getters and Setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
+
+    public int getUserId() { return userId; }
+    public void setUserId(int userId) { this.userId = userId; }
 
     public String getStoryMode() { return storyMode; }
     public void setStoryMode(String storyMode) { this.storyMode = storyMode; }

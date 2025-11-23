@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
         Button backFromStoryBtn = findViewById(R.id.btnBackFromStory);
         ImageButton statsBtn = findViewById(R.id.btnStatsIcon);
 
-        // Load user info
+        // Load user info and initialize their data
         loadUserInfo();
         updateMusicButton();
 
@@ -100,9 +100,25 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Profile button
+        // Profile button - NEW: Open ProfileActivity
         profileButton.setOnClickListener(v -> {
-            showProfileDialog();
+            if (currentUser == null) {
+                // Guest mode - offer to login
+                new AlertDialog.Builder(this)
+                        .setTitle("Guest Mode")
+                        .setMessage("You're playing as a guest. Create an account to save your progress!")
+                        .setPositiveButton("Login", (dialog, which) -> {
+                            Intent intent = new Intent(this, LoginActivity.class);
+                            startActivity(intent);
+                            finish();
+                        })
+                        .setNegativeButton("Continue as Guest", null)
+                        .show();
+            } else {
+                // Open profile activity
+                Intent intent = new Intent(this, ProfileActivity.class);
+                startActivity(intent);
+            }
         });
 
         // Close story frame when clicking outside
@@ -142,7 +158,10 @@ public class MainActivity extends AppCompatActivity {
     private void loadUserInfo() {
         new Thread(() -> {
             currentUser = database.gameDao().getLoggedInUser();
-            // Just load the user, no UI changes needed
+            if (currentUser != null) {
+                // Initialize user data if they just logged in
+                AppDatabase.initializeUserData(database, currentUser.getId());
+            }
         }).start();
     }
 
@@ -152,6 +171,10 @@ public class MainActivity extends AppCompatActivity {
             if (progress != null) {
                 runOnUiThread(() -> {
                     starsText.setText("⭐ " + progress.getTotalStars() + " Stars");
+                });
+            } else {
+                runOnUiThread(() -> {
+                    starsText.setText("⭐ 0 Stars");
                 });
             }
         }).start();
@@ -170,57 +193,5 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         }).start();
-    }
-
-    private void showProfileDialog() {
-        if (currentUser == null) {
-            // Guest mode - offer to login
-            new AlertDialog.Builder(this)
-                    .setTitle("Guest Mode")
-                    .setMessage("You're playing as a guest. Create an account to save your progress!")
-                    .setPositiveButton("Login", (dialog, which) -> {
-                        Intent intent = new Intent(this, LoginActivity.class);
-                        startActivity(intent);
-                        finish();
-                    })
-                    .setNegativeButton("Continue as Guest", null)
-                    .show();
-        } else {
-            // Show user profile
-            String message = String.format(
-                    "Username: %s\nEmail: %s\n\nAccount created: %s\nLast login: %s",
-                    currentUser.getUsername(),
-                    currentUser.getEmail(),
-                    new java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault())
-                            .format(new java.util.Date(currentUser.getCreatedAt())),
-                    new java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault())
-                            .format(new java.util.Date(currentUser.getLastLoginAt()))
-            );
-
-            new AlertDialog.Builder(this)
-                    .setTitle("👤 Profile")
-                    .setMessage(message)
-                    .setPositiveButton("Logout", (dialog, which) -> handleLogout())
-                    .setNegativeButton("Close", null)
-                    .show();
-        }
-    }
-
-    private void handleLogout() {
-        new AlertDialog.Builder(this)
-                .setTitle("Logout")
-                .setMessage("Are you sure you want to logout?")
-                .setPositiveButton("Yes", (dialog, which) -> {
-                    new Thread(() -> {
-                        database.gameDao().logoutAllUsers();
-                        runOnUiThread(() -> {
-                            Intent intent = new Intent(this, LoginActivity.class);
-                            startActivity(intent);
-                            finish();
-                        });
-                    }).start();
-                })
-                .setNegativeButton("No", null)
-                .show();
     }
 }

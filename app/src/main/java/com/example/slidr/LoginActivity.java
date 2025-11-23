@@ -4,18 +4,18 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.textfield.TextInputEditText;
 import com.example.slidr.database.AppDatabase;
 import com.example.slidr.database.User;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private EditText emailInput, passwordInput;
+    private TextInputEditText emailInput, passwordInput;
     private Button loginBtn;
     private TextView registerLink, skipLogin;
     private AppDatabase database;
@@ -44,9 +44,15 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         skipLogin.setOnClickListener(v -> {
-            Toast.makeText(this, "Guest Mode - Progress won't be saved", Toast.LENGTH_LONG).show();
-            startActivity(new Intent(this, MainActivity.class));
-            finish();
+            new AlertDialog.Builder(this)
+                    .setTitle("Guest Mode")
+                    .setMessage("Continue as guest? Your progress won't be saved across devices.")
+                    .setPositiveButton("Continue", (dialog, which) -> {
+                        startActivity(new Intent(this, MainActivity.class));
+                        finish();
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
         });
     }
 
@@ -93,20 +99,36 @@ public class LoginActivity extends AppCompatActivity {
                         user.setLastLoginAt(System.currentTimeMillis());
                         database.gameDao().updateUser(user);
 
-                        Toast.makeText(this, "Welcome back, " + user.getUsername() + "!", Toast.LENGTH_SHORT).show();
+                        // Initialize user-specific data
+                        AppDatabase.initializeUserData(database, user.getId());
 
-                        Intent intent = new Intent(this, MainActivity.class);
-                        startActivity(intent);
-                        finish();
+                        // Show welcome message
+                        new AlertDialog.Builder(this)
+                                .setTitle("Welcome!")
+                                .setMessage("Welcome back, " + user.getUsername() + "!")
+                                .setPositiveButton("Continue", (dialog, which) -> {
+                                    Intent intent = new Intent(this, MainActivity.class);
+                                    startActivity(intent);
+                                    finish();
+                                })
+                                .show();
                     } else {
-                        Toast.makeText(this, "Invalid email or password", Toast.LENGTH_SHORT).show();
+                        new AlertDialog.Builder(this)
+                                .setTitle("Login Failed")
+                                .setMessage("Invalid email or password. Please try again.")
+                                .setPositiveButton("OK", null)
+                                .show();
                         loginBtn.setEnabled(true);
                         loginBtn.setText("Login");
                     }
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> {
-                    Toast.makeText(this, "Login failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    new AlertDialog.Builder(this)
+                            .setTitle("Error")
+                            .setMessage("Login failed: " + e.getMessage())
+                            .setPositiveButton("OK", null)
+                            .show();
                     loginBtn.setEnabled(true);
                     loginBtn.setText("Login");
                 });

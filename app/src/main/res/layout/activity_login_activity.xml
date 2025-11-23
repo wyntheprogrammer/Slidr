@@ -85,7 +85,7 @@
                     app:boxCornerRadiusBottomEnd="12dp"
                     app:startIconDrawable="@android:drawable/ic_dialog_email">
 
-                    <EditText
+                    <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etEmail"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -108,7 +108,7 @@
                     app:startIconDrawable="@android:drawable/ic_lock_idle_lock"
                     app:endIconMode="password_toggle">
 
-                    <EditText
+                    <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etPassword"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -147,7 +147,7 @@
                     android:layout_height="wrap_content"
                     android:text="Continue as Guest"
                     android:textSize="14sp"
-                    android:textColor="#999999"
+                    android:textColor="#000000"
                     android:layout_gravity="center"
                     android:padding="8dp"
                     android:layout_marginTop="8dp"

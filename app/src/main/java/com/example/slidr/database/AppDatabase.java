@@ -6,8 +6,6 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-import com.example.slidr.models.StoryData;
-
 import java.util.List;
 
 @Database(entities = {
@@ -18,7 +16,7 @@ import java.util.List;
         PuzzleUnlock.class,
         MusicTrack.class,
         GameSettings.class
-}, version = 4, exportSchema = false)
+}, version = 5, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static AppDatabase instance;
@@ -43,31 +41,42 @@ public abstract class AppDatabase extends RoomDatabase {
 
     private static void initializeDefaultData(AppDatabase db) {
         new Thread(() -> {
-            // Initialize user progress if not exists
-            UserProgress progress = db.gameDao().getUserProgress();
-            if (progress == null) {
-                db.gameDao().insertUserProgress(new UserProgress());
-            }
-
             // Initialize settings if not exists
             GameSettings settings = db.gameDao().getSettings();
             if (settings == null) {
                 db.gameDao().insertSettings(new GameSettings());
             }
 
-            // Initialize music tracks
+            // Initialize music tracks (shared across all users)
             initializeMusicTracks(db);
 
-            // Initialize story mode unlocks
+            // Initialize user-specific data for logged-in user
+            User currentUser = db.gameDao().getLoggedInUser();
+            if (currentUser != null) {
+                initializeUserData(db, currentUser.getId());
+            }
+        }).start();
+    }
+
+    public static void initializeUserData(AppDatabase db, int userId) {
+        new Thread(() -> {
+            // Initialize user progress if not exists
+            UserProgress progress = db.gameDao().getUserProgressByUserId(userId);
+            if (progress == null) {
+                progress = new UserProgress(userId);
+                db.gameDao().insertUserProgress(progress);
+            }
+
+            // Initialize story mode unlocks for this user
             String[] storyModes = {"onepiece", "dragonball", "bleach"};
             for (String story : storyModes) {
-                PuzzleUnlock firstArc = db.gameDao().getPuzzleUnlock(story, 0);
+                PuzzleUnlock firstArc = db.gameDao().getPuzzleUnlockByUser(userId, story, 0);
                 if (firstArc == null) {
                     int arcCount = getArcCount(story);
                     for (int i = 0; i < arcCount; i++) {
-                        boolean unlocked = (i == 0);
+                        boolean unlocked = (i == 0); // First arc is free
                         db.gameDao().insertPuzzleUnlock(
-                                new PuzzleUnlock(story, i, unlocked, 0)
+                                new PuzzleUnlock(userId, story, i, unlocked, 0)
                         );
                     }
                 }

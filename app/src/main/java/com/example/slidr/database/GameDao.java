@@ -70,27 +70,38 @@ public interface GameDao {
     @Query("DELETE FROM statistics")
     void deleteAllStatistics();
 
-    // User Progress (Stars)
+    // User Progress (Stars) - Now per user
     @Insert
     void insertUserProgress(UserProgress progress);
 
     @Update
     void updateUserProgress(UserProgress progress);
 
-    @Query("SELECT * FROM user_progress WHERE userId = 1")
+    @Query("SELECT * FROM user_progress WHERE userId = :userId LIMIT 1")
+    UserProgress getUserProgressByUserId(int userId);
+
+    // Get current logged-in user's progress
+    @Query("SELECT up.* FROM user_progress up INNER JOIN users u ON up.userId = u.id WHERE u.isLoggedIn = 1 LIMIT 1")
     UserProgress getUserProgress();
 
-    // Puzzle Unlocks
+    // Puzzle Unlocks - Now per user
     @Insert
     void insertPuzzleUnlock(PuzzleUnlock unlock);
 
     @Update
     void updatePuzzleUnlock(PuzzleUnlock unlock);
 
-    @Query("SELECT * FROM puzzle_unlocks WHERE storyMode = :storyMode AND arcIndex = :arcIndex")
+    @Query("SELECT * FROM puzzle_unlocks WHERE userId = :userId AND storyMode = :storyMode AND arcIndex = :arcIndex LIMIT 1")
+    PuzzleUnlock getPuzzleUnlockByUser(int userId, String storyMode, int arcIndex);
+
+    @Query("SELECT * FROM puzzle_unlocks WHERE userId = :userId AND storyMode = :storyMode ORDER BY arcIndex ASC")
+    List<PuzzleUnlock> getStoryModeProgressByUser(int userId, String storyMode);
+
+    // Get current logged-in user's puzzle unlocks
+    @Query("SELECT pu.* FROM puzzle_unlocks pu INNER JOIN users u ON pu.userId = u.id WHERE u.isLoggedIn = 1 AND pu.storyMode = :storyMode AND pu.arcIndex = :arcIndex LIMIT 1")
     PuzzleUnlock getPuzzleUnlock(String storyMode, int arcIndex);
 
-    @Query("SELECT * FROM puzzle_unlocks WHERE storyMode = :storyMode ORDER BY arcIndex ASC")
+    @Query("SELECT pu.* FROM puzzle_unlocks pu INNER JOIN users u ON pu.userId = u.id WHERE u.isLoggedIn = 1 AND pu.storyMode = :storyMode ORDER BY pu.arcIndex ASC")
     List<PuzzleUnlock> getStoryModeProgress(String storyMode);
 
     @Query("SELECT * FROM puzzle_unlocks")
