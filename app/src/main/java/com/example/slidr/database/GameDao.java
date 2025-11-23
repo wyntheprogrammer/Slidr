@@ -118,7 +118,7 @@ public interface GameDao {
     @Query("DELETE FROM puzzle_unlocks")
     void deleteAllUnlocks();
 
-    // Music Tracks
+    // Music Tracks - NOW USER-SPECIFIC
     @Insert
     void insertMusicTrack(MusicTrack track);
 
@@ -128,13 +128,28 @@ public interface GameDao {
     @Query("SELECT * FROM music_tracks WHERE id = :id")
     MusicTrack getMusicTrack(int id);
 
-    @Query("SELECT * FROM music_tracks WHERE unlocked = 1")
+    // Get music tracks for specific user
+    @Query("SELECT * FROM music_tracks WHERE userId = :userId AND unlocked = 1")
+    List<MusicTrack> getUnlockedTracksByUser(int userId);
+
+    // Get current logged-in user's unlocked tracks
+    @Query("SELECT mt.* FROM music_tracks mt INNER JOIN users u ON mt.userId = u.id WHERE u.isLoggedIn = 1 AND mt.unlocked = 1")
     List<MusicTrack> getUnlockedTracks();
 
-    @Query("SELECT * FROM music_tracks ORDER BY id ASC")
+    // Get all music tracks for specific user
+    @Query("SELECT * FROM music_tracks WHERE userId = :userId ORDER BY id ASC")
+    List<MusicTrack> getAllMusicTracksByUser(int userId);
+
+    // Get current logged-in user's music tracks
+    @Query("SELECT mt.* FROM music_tracks mt INNER JOIN users u ON mt.userId = u.id WHERE u.isLoggedIn = 1 ORDER BY mt.id ASC")
     List<MusicTrack> getAllMusicTracks();
 
-    @Query("SELECT * FROM music_tracks WHERE storyMode = :storyMode AND arcIndex = :arcIndex")
+    // Get music for specific arc for specific user
+    @Query("SELECT * FROM music_tracks WHERE userId = :userId AND storyMode = :storyMode AND arcIndex = :arcIndex LIMIT 1")
+    MusicTrack getMusicForArcByUser(int userId, String storyMode, int arcIndex);
+
+    // Get current logged-in user's music for arc
+    @Query("SELECT mt.* FROM music_tracks mt INNER JOIN users u ON mt.userId = u.id WHERE u.isLoggedIn = 1 AND mt.storyMode = :storyMode AND mt.arcIndex = :arcIndex LIMIT 1")
     MusicTrack getMusicForArc(String storyMode, int arcIndex);
 
     // Game Settings

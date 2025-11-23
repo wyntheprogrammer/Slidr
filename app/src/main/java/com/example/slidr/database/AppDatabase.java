@@ -16,7 +16,7 @@ import java.util.List;
         PuzzleUnlock.class,
         MusicTrack.class,
         GameSettings.class
-}, version = 6, exportSchema = false)
+}, version = 7, exportSchema = false)  // Incremented version to 7
 public abstract class AppDatabase extends RoomDatabase {
 
     private static AppDatabase instance;
@@ -46,9 +46,6 @@ public abstract class AppDatabase extends RoomDatabase {
             if (settings == null) {
                 db.gameDao().insertSettings(new GameSettings());
             }
-
-            // Initialize music tracks (shared across all users)
-            initializeMusicTracks(db);
 
             // Initialize user-specific data for logged-in user
             User currentUser = db.gameDao().getLoggedInUser();
@@ -81,56 +78,94 @@ public abstract class AppDatabase extends RoomDatabase {
                     }
                 }
             }
+
+            // Initialize music tracks for this user (USER-SPECIFIC)
+            initializeMusicTracksForUser(db, userId);
         }).start();
     }
 
-    private static void initializeMusicTracks(AppDatabase db) {
-        List<MusicTrack> tracks = db.gameDao().getAllMusicTracks();
-        if (!tracks.isEmpty()) {
-            return;
+    private static void initializeMusicTracksForUser(AppDatabase db, int userId) {
+        // Check if user already has music tracks initialized
+        List<MusicTrack> userTracks = db.gameDao().getAllMusicTracksByUser(userId);
+        if (!userTracks.isEmpty()) {
+            return; // User already has music tracks
         }
 
-        // One Piece music tracks - ALL locked initially (except Arc 1)
-        db.gameDao().insertMusicTrack(new MusicTrack(
+        // Create music tracks for this user - ALL LOCKED initially
+        // One Piece music tracks
+        MusicTrack op1 = new MusicTrack(
                 "We Are!", "onepiece", 0,
-                com.example.slidr.R.raw.onepiece_arc1_music, false)); // Locked
-        db.gameDao().insertMusicTrack(new MusicTrack(
+                com.example.slidr.R.raw.onepiece_arc1_music, false);
+        op1.setUserId(userId);
+        db.gameDao().insertMusicTrack(op1);
+
+        MusicTrack op2 = new MusicTrack(
                 "Believe", "onepiece", 1,
-                com.example.slidr.R.raw.onepiece_arc2_music, false));
-        db.gameDao().insertMusicTrack(new MusicTrack(
+                com.example.slidr.R.raw.onepiece_arc2_music, false);
+        op2.setUserId(userId);
+        db.gameDao().insertMusicTrack(op2);
+
+        MusicTrack op3 = new MusicTrack(
                 "Kokoro no Chizu", "onepiece", 2,
-                com.example.slidr.R.raw.onepiece_arc3_music, false));
-        db.gameDao().insertMusicTrack(new MusicTrack(
+                com.example.slidr.R.raw.onepiece_arc3_music, false);
+        op3.setUserId(userId);
+        db.gameDao().insertMusicTrack(op3);
+
+        MusicTrack op4 = new MusicTrack(
                 "One Day", "onepiece", 3,
-                com.example.slidr.R.raw.onepiece_arc4_music, false));
+                com.example.slidr.R.raw.onepiece_arc4_music, false);
+        op4.setUserId(userId);
+        db.gameDao().insertMusicTrack(op4);
 
-        // Dragon Ball Z music tracks - ALL locked initially
-        db.gameDao().insertMusicTrack(new MusicTrack(
+        // Dragon Ball Z music tracks
+        MusicTrack dbz1 = new MusicTrack(
                 "Cha-La Head-Cha-La", "dragonball", 0,
-                com.example.slidr.R.raw.dragonball_arc1_music, false));
-        db.gameDao().insertMusicTrack(new MusicTrack(
-                "We Gotta Power", "dragonball", 1,
-                com.example.slidr.R.raw.dragonball_arc2_music, false));
-        db.gameDao().insertMusicTrack(new MusicTrack(
-                "Dragon Soul", "dragonball", 2,
-                com.example.slidr.R.raw.dragonball_arc3_music, false));
-        db.gameDao().insertMusicTrack(new MusicTrack(
-                "Dan Dan Kokoro", "dragonball", 3,
-                com.example.slidr.R.raw.dragonball_arc4_music, false));
+                com.example.slidr.R.raw.dragonball_arc1_music, false);
+        dbz1.setUserId(userId);
+        db.gameDao().insertMusicTrack(dbz1);
 
-        // Bleach music tracks - ALL locked initially
-        db.gameDao().insertMusicTrack(new MusicTrack(
+        MusicTrack dbz2 = new MusicTrack(
+                "We Gotta Power", "dragonball", 1,
+                com.example.slidr.R.raw.dragonball_arc2_music, false);
+        dbz2.setUserId(userId);
+        db.gameDao().insertMusicTrack(dbz2);
+
+        MusicTrack dbz3 = new MusicTrack(
+                "Dragon Soul", "dragonball", 2,
+                com.example.slidr.R.raw.dragonball_arc3_music, false);
+        dbz3.setUserId(userId);
+        db.gameDao().insertMusicTrack(dbz3);
+
+        MusicTrack dbz4 = new MusicTrack(
+                "Dan Dan Kokoro", "dragonball", 3,
+                com.example.slidr.R.raw.dragonball_arc4_music, false);
+        dbz4.setUserId(userId);
+        db.gameDao().insertMusicTrack(dbz4);
+
+        // Bleach music tracks
+        MusicTrack bleach1 = new MusicTrack(
                 "Asterisk", "bleach", 0,
-                com.example.slidr.R.raw.bleach_arc1_music, false));
-        db.gameDao().insertMusicTrack(new MusicTrack(
+                com.example.slidr.R.raw.bleach_arc1_music, false);
+        bleach1.setUserId(userId);
+        db.gameDao().insertMusicTrack(bleach1);
+
+        MusicTrack bleach2 = new MusicTrack(
                 "Ichirin no Hana", "bleach", 1,
-                com.example.slidr.R.raw.bleach_arc2_music, false));
-        db.gameDao().insertMusicTrack(new MusicTrack(
+                com.example.slidr.R.raw.bleach_arc2_music, false);
+        bleach2.setUserId(userId);
+        db.gameDao().insertMusicTrack(bleach2);
+
+        MusicTrack bleach3 = new MusicTrack(
                 "Alones", "bleach", 2,
-                com.example.slidr.R.raw.bleach_arc3_music, false));
-        db.gameDao().insertMusicTrack(new MusicTrack(
+                com.example.slidr.R.raw.bleach_arc3_music, false);
+        bleach3.setUserId(userId);
+        db.gameDao().insertMusicTrack(bleach3);
+
+        MusicTrack bleach4 = new MusicTrack(
                 "Ranbu no Melody", "bleach", 3,
-                com.example.slidr.R.raw.bleach_arc4_music, false));
+                com.example.slidr.R.raw.bleach_arc4_music, false);
+        bleach4.setUserId(userId);
+        db.gameDao().insertMusicTrack(bleach4);
     }
 
     private static int getArcCount(String storyMode) {

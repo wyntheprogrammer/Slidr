@@ -21,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.slidr.database.AppDatabase;
 import com.example.slidr.database.PuzzleUnlock;
+import com.example.slidr.database.User;
 import com.example.slidr.database.UserProgress;
 import com.example.slidr.database.MusicTrack;
 import com.example.slidr.utils.MusicManager;
@@ -356,7 +357,16 @@ public class ImageGameActivity extends AppCompatActivity {
     }
 
     private void checkAndUnlockMusic(String storyId, int arcIndex, int totalStars) {
-        MusicTrack track = database.gameDao().getMusicForArc(storyId, arcIndex);
+        // Get the current user's music track for this arc
+        User currentUser = database.gameDao().getLoggedInUser();
+        if (currentUser == null) {
+            return; // Guest mode, no music unlock
+        }
+
+        MusicTrack track = database.gameDao().getMusicForArcByUser(
+                currentUser.getId(), storyId, arcIndex
+        );
+
         if (track != null && !track.isUnlocked() && totalStars >= 2) {
             track.setUnlocked(true);
             database.gameDao().updateMusicTrack(track);
@@ -397,8 +407,13 @@ public class ImageGameActivity extends AppCompatActivity {
             // Check if music was unlocked
             new Thread(() -> {
                 UserProgress progress = database.gameDao().getUserProgress();
-                if (progress.getTotalStars() >= 2) {
-                    MusicTrack track = database.gameDao().getMusicForArc(storyId, arcIndex);
+                User currentUser = database.gameDao().getLoggedInUser();
+
+                if (progress != null && currentUser != null && progress.getTotalStars() >= 2) {
+                    MusicTrack track = database.gameDao().getMusicForArcByUser(
+                            currentUser.getId(), storyId, arcIndex
+                    );
+
                     if (track != null && track.isUnlocked()) {
                         runOnUiThread(() -> {
                             rewardText.setText(rewardMessage + "\n🎵 Music Unlocked!");
@@ -487,11 +502,20 @@ public class ImageGameActivity extends AppCompatActivity {
             try {
                 com.example.slidr.database.GameSettings settings = database.gameDao().getSettings();
                 if (settings != null && settings.isMusicEnabled()) {
-                    com.example.slidr.database.MusicTrack track = database.gameDao().getMusicForArc(storyId, arcIndex);
-                    if (track != null && track.isUnlocked()) {
-                        runOnUiThread(() -> {
-                            MusicManager.playMusic(this, track.getMusicResId());
-                        });
+                    // Get current user
+                    User currentUser = database.gameDao().getLoggedInUser();
+                    if (currentUser != null) {
+                        // Get user-specific music track
+                        com.example.slidr.database.MusicTrack track =
+                                database.gameDao().getMusicForArcByUser(
+                                        currentUser.getId(), storyId, arcIndex
+                                );
+
+                        if (track != null && track.isUnlocked()) {
+                            runOnUiThread(() -> {
+                                MusicManager.playMusic(this, track.getMusicResId());
+                            });
+                        }
                     }
                 }
             } catch (Exception e) {
