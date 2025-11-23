@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:background="?attr/colorSurface">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -32,7 +33,7 @@
                 android:layout_height="wrap_content"
                 android:text="Join Slidr"
                 android:textSize="42sp"
-                android:textColor="#FFFFFF"
+                android:textColor="?attr/colorPrimary"
                 android:textStyle="bold"
                 android:shadowColor="#000000"
                 android:shadowDx="2"
@@ -47,21 +48,21 @@
             android:layout_marginTop="20dp"
             android:elevation="8dp"
             app:cardCornerRadius="16dp"
-            app:cardElevation="8dp">
+            app:cardElevation="8dp"
+            app:cardBackgroundColor="?attr/colorSurface">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="24dp"
-                android:background="#FFFFFF">
+                android:padding="24dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Create Account"
                     android:textSize="28sp"
-                    android:textColor="#333333"
+                    android:textColor="?attr/colorOnSurface"
                     android:textStyle="bold"
                     android:layout_gravity="center"
                     android:layout_marginBottom="30dp"/>
@@ -70,20 +71,21 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:boxBackgroundMode="outline"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:startIconDrawable="@android:drawable/ic_menu_myplaces">
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    app:hintTextColor="?attr/colorPrimary"
+                    app:startIconDrawable="@android:drawable/ic_menu_myplaces"
+                    app:startIconTint="?attr/colorPrimary">
 
-                    <EditText
+                    <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etUsername"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Username"
                         android:inputType="text"
                         android:textSize="16sp"
+                        android:textColor="@color/input_text"
+                        android:textColorHint="@color/input_hint"
                         android:padding="16dp"/>
 
                 </com.google.android.material.textfield.TextInputLayout>
@@ -92,20 +94,21 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:boxBackgroundMode="outline"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:startIconDrawable="@android:drawable/ic_dialog_email">
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    app:hintTextColor="?attr/colorPrimary"
+                    app:startIconDrawable="@android:drawable/ic_dialog_email"
+                    app:startIconTint="?attr/colorPrimary">
 
-                    <EditText
+                    <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etEmail"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Email"
                         android:inputType="textEmailAddress"
                         android:textSize="16sp"
+                        android:textColor="@color/input_text"
+                        android:textColorHint="@color/input_hint"
                         android:padding="16dp"/>
 
                 </com.google.android.material.textfield.TextInputLayout>
@@ -114,21 +117,23 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:boxBackgroundMode="outline"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
-                    app:boxCornerRadiusBottomEnd="12dp"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    app:hintTextColor="?attr/colorPrimary"
                     app:startIconDrawable="@android:drawable/ic_lock_idle_lock"
-                    app:endIconMode="password_toggle">
+                    app:startIconTint="?attr/colorPrimary"
+                    app:endIconMode="password_toggle"
+                    app:endIconTint="?attr/colorPrimary">
 
-                    <EditText
+                    <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etPassword"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Password"
                         android:inputType="textPassword"
                         android:textSize="16sp"
+                        android:textColor="@color/input_text"
+                        android:textColorHint="@color/input_hint"
                         android:padding="16dp"/>
 
                 </com.google.android.material.textfield.TextInputLayout>
@@ -137,21 +142,23 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="24dp"
-                    app:boxBackgroundMode="outline"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
-                    app:boxCornerRadiusBottomEnd="12dp"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    app:hintTextColor="?attr/colorPrimary"
                     app:startIconDrawable="@android:drawable/ic_lock_idle_lock"
-                    app:endIconMode="password_toggle">
+                    app:startIconTint="?attr/colorPrimary"
+                    app:endIconMode="password_toggle"
+                    app:endIconTint="?attr/colorPrimary">
 
-                    <EditText
+                    <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etConfirmPassword"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Confirm Password"
                         android:inputType="textPassword"
                         android:textSize="16sp"
+                        android:textColor="@color/input_text"
+                        android:textColorHint="@color/input_hint"
                         android:padding="16dp"/>
 
                 </com.google.android.material.textfield.TextInputLayout>
@@ -164,6 +171,7 @@
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="#FFFFFF"
+                    android:backgroundTint="?attr/colorPrimary"
                     android:layout_marginBottom="16dp"/>
 
                 <TextView
@@ -172,7 +180,7 @@
                     android:layout_height="wrap_content"
                     android:text="Already have an account? Login"
                     android:textSize="14sp"
-                    android:textColor="#2196F3"
+                    android:textColor="?attr/colorPrimary"
                     android:layout_gravity="center"
                     android:padding="8dp"
                     android:clickable="true"

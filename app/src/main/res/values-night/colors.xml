@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Input field colors for dark mode -->
+    <color name="input_text">#FFFFFF</color>
+    <color name="input_hint">#AAAAAA</color>
+    <color name="input_background">#2C2C2C</color>
+</resources>
