@@ -7,10 +7,12 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.slidr.database.AppDatabase;
 import com.example.slidr.database.GameSettings;
+import com.example.slidr.database.User;
 import com.example.slidr.database.UserProgress;
 import com.example.slidr.utils.MusicManager;
 
@@ -19,8 +21,9 @@ public class MainActivity extends AppCompatActivity {
     private AppDatabase database;
     private TextView starsText;
     private FrameLayout storyModeFrame;
-    private ImageButton musicButton;
+    private ImageButton musicButton, profileButton;
     private GameSettings settings;
+    private User currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
         starsText = findViewById(R.id.tvTotalStars);
         storyModeFrame = findViewById(R.id.storyModeFrame);
         musicButton = findViewById(R.id.btnMusicFloat);
+        profileButton = findViewById(R.id.btnProfileFloat);
 
         Button classicBtn = findViewById(R.id.btnClassic);
         Button storyModeBtn = findViewById(R.id.btnStoryMode);
@@ -41,7 +45,8 @@ public class MainActivity extends AppCompatActivity {
         Button backFromStoryBtn = findViewById(R.id.btnBackFromStory);
         ImageButton statsBtn = findViewById(R.id.btnStatsIcon);
 
-        // Update music button icon based on settings
+        // Load user info
+        loadUserInfo();
         updateMusicButton();
 
         // Classic mode
@@ -95,6 +100,11 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        // Profile button
+        profileButton.setOnClickListener(v -> {
+            showProfileDialog();
+        });
+
         // Close story frame when clicking outside
         storyModeFrame.setOnClickListener(v -> {
             storyModeFrame.setVisibility(View.GONE);
@@ -103,12 +113,11 @@ public class MainActivity extends AppCompatActivity {
         // Prevent clicks on dialog from closing it
         View dialogContainer = findViewById(R.id.storyModeFrame);
         if (dialogContainer != null) {
-            // Find the LinearLayout inside the FrameLayout
             if (dialogContainer instanceof FrameLayout) {
                 FrameLayout frameLayout = (FrameLayout) dialogContainer;
                 if (frameLayout.getChildCount() > 0) {
                     View innerLayout = frameLayout.getChildAt(0);
-                    innerLayout.setOnClickListener(null); // Prevent click-through
+                    innerLayout.setOnClickListener(null);
                 }
             }
         }
@@ -118,17 +127,23 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         loadTotalStars();
+        loadUserInfo();
         updateMusicButton();
-        // Don't auto-start music on main menu
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Stop music when app is fully closed
         if (isFinishing()) {
             MusicManager.stopMusic();
         }
+    }
+
+    private void loadUserInfo() {
+        new Thread(() -> {
+            currentUser = database.gameDao().getLoggedInUser();
+            // Just load the user, no UI changes needed
+        }).start();
     }
 
     private void loadTotalStars() {
@@ -147,7 +162,6 @@ public class MainActivity extends AppCompatActivity {
             settings = database.gameDao().getSettings();
             if (settings != null) {
                 runOnUiThread(() -> {
-                    // Update icon based on music state
                     if (settings.isMusicEnabled()) {
                         musicButton.setImageResource(android.R.drawable.ic_lock_silent_mode_off);
                     } else {
@@ -156,5 +170,57 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         }).start();
+    }
+
+    private void showProfileDialog() {
+        if (currentUser == null) {
+            // Guest mode - offer to login
+            new AlertDialog.Builder(this)
+                    .setTitle("Guest Mode")
+                    .setMessage("You're playing as a guest. Create an account to save your progress!")
+                    .setPositiveButton("Login", (dialog, which) -> {
+                        Intent intent = new Intent(this, LoginActivity.class);
+                        startActivity(intent);
+                        finish();
+                    })
+                    .setNegativeButton("Continue as Guest", null)
+                    .show();
+        } else {
+            // Show user profile
+            String message = String.format(
+                    "Username: %s\nEmail: %s\n\nAccount created: %s\nLast login: %s",
+                    currentUser.getUsername(),
+                    currentUser.getEmail(),
+                    new java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault())
+                            .format(new java.util.Date(currentUser.getCreatedAt())),
+                    new java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault())
+                            .format(new java.util.Date(currentUser.getLastLoginAt()))
+            );
+
+            new AlertDialog.Builder(this)
+                    .setTitle("👤 Profile")
+                    .setMessage(message)
+                    .setPositiveButton("Logout", (dialog, which) -> handleLogout())
+                    .setNegativeButton("Close", null)
+                    .show();
+        }
+    }
+
+    private void handleLogout() {
+        new AlertDialog.Builder(this)
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to logout?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    new Thread(() -> {
+                        database.gameDao().logoutAllUsers();
+                        runOnUiThread(() -> {
+                            Intent intent = new Intent(this, LoginActivity.class);
+                            startActivity(intent);
+                            finish();
+                        });
+                    }).start();
+                })
+                .setNegativeButton("No", null)
+                .show();
     }
 }

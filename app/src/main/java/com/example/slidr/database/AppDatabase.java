@@ -11,13 +11,14 @@ import com.example.slidr.models.StoryData;
 import java.util.List;
 
 @Database(entities = {
+        User.class,
         GameHistory.class,
         Statistics.class,
         UserProgress.class,
         PuzzleUnlock.class,
         MusicTrack.class,
         GameSettings.class
-}, version = 3, exportSchema = false)
+}, version = 4, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static AppDatabase instance;
@@ -31,11 +32,10 @@ public abstract class AppDatabase extends RoomDatabase {
                             AppDatabase.class,
                             "slidr_database"
                     )
-                    .fallbackToDestructiveMigration() // For version changes
-                    .allowMainThreadQueries() // For simplicity; use executors in production
+                    .fallbackToDestructiveMigration()
+                    .allowMainThreadQueries()
                     .build();
 
-            // Initialize default data
             initializeDefaultData(instance);
         }
         return instance;
@@ -58,16 +58,14 @@ public abstract class AppDatabase extends RoomDatabase {
             // Initialize music tracks
             initializeMusicTracks(db);
 
-            // Initialize story mode unlocks - first arc of each story is unlocked
+            // Initialize story mode unlocks
             String[] storyModes = {"onepiece", "dragonball", "bleach"};
             for (String story : storyModes) {
-                // Check if already initialized
                 PuzzleUnlock firstArc = db.gameDao().getPuzzleUnlock(story, 0);
                 if (firstArc == null) {
-                    // Unlock first arc, lock the rest
                     int arcCount = getArcCount(story);
                     for (int i = 0; i < arcCount; i++) {
-                        boolean unlocked = (i == 0); // Only first arc unlocked
+                        boolean unlocked = (i == 0);
                         db.gameDao().insertPuzzleUnlock(
                                 new PuzzleUnlock(story, i, unlocked, 0)
                         );
@@ -78,16 +76,15 @@ public abstract class AppDatabase extends RoomDatabase {
     }
 
     private static void initializeMusicTracks(AppDatabase db) {
-        // Check if music tracks already initialized
         List<MusicTrack> tracks = db.gameDao().getAllMusicTracks();
         if (!tracks.isEmpty()) {
-            return; // Already initialized
+            return;
         }
 
-        // One Piece music tracks (replace R.raw.xxx with your actual music files)
+        // One Piece music tracks
         db.gameDao().insertMusicTrack(new MusicTrack(
                 "We Are!", "onepiece", 0,
-                com.example.slidr.R.raw.onepiece_arc1_music, true)); // Arc 1 unlocked by default
+                com.example.slidr.R.raw.onepiece_arc1_music, true));
         db.gameDao().insertMusicTrack(new MusicTrack(
                 "Believe", "onepiece", 1,
                 com.example.slidr.R.raw.onepiece_arc2_music, false));
@@ -129,9 +126,9 @@ public abstract class AppDatabase extends RoomDatabase {
 
     private static int getArcCount(String storyMode) {
         switch (storyMode) {
-            case "onepiece": return 4; // East Blue, Alabasta, Enies Lobby, Marineford
-            case "dragonball": return 4; // Saiyan, Frieza, Cell, Buu
-            case "bleach": return 4; // Soul Society, Arrancar, Fullbring, Quincy War
+            case "onepiece": return 4;
+            case "dragonball": return 4;
+            case "bleach": return 4;
             default: return 4;
         }
     }

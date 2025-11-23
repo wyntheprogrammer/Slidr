@@ -4,6 +4,21 @@
     android:layout_height="match_parent"
     android:background="#FFFFFF">
 
+    <!-- Profile Button (Top Left) -->
+    <ImageButton
+        android:id="@+id/btnProfileFloat"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_margin="16dp"
+        android:background="@drawable/circle_button"
+        android:src="@android:drawable/ic_menu_myplaces"
+        android:scaleType="centerInside"
+        android:padding="12dp"
+        android:elevation="6dp"
+        android:contentDescription="Profile" />
+
     <!-- Floating Music Button (Top Right) -->
     <ImageButton
         android:id="@+id/btnMusicFloat"
