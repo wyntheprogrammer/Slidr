@@ -1,6 +1,7 @@
 package com.example.slidr;
 
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -25,10 +26,11 @@ public class SettingsActivity extends AppCompatActivity {
 
     private AppDatabase database;
     private Switch musicSwitch;
-    private RadioGroup musicRadioGroup;
+    private LinearLayout musicTracksContainer;
     private GameSettings settings;
     private TextView unlockHintText;
     private int userTotalStars = 0;
+    private RadioGroup radioGroup;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +41,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         TextView titleText = findViewById(R.id.tvSettingsTitle);
         musicSwitch = findViewById(R.id.switchMusic);
-        musicRadioGroup = findViewById(R.id.radioGroupMusic);
+        musicTracksContainer = findViewById(R.id.musicTracksContainer);
         unlockHintText = findViewById(R.id.tvUnlockHint);
         Button backBtn = findViewById(R.id.btnBack);
 
@@ -50,17 +52,19 @@ public class SettingsActivity extends AppCompatActivity {
         musicSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             settings.setMusicEnabled(isChecked);
             saveSettings();
-            musicRadioGroup.setEnabled(isChecked);
-            for (int i = 0; i < musicRadioGroup.getChildCount(); i++) {
-                View child = musicRadioGroup.getChildAt(i);
-                if (child instanceof RadioButton) {
-                    child.setEnabled(isChecked);
-                }
+
+            // Enable/disable all music track rows
+            for (int i = 0; i < musicTracksContainer.getChildCount(); i++) {
+                View child = musicTracksContainer.getChildAt(i);
+                child.setEnabled(isChecked);
+                child.setAlpha(isChecked ? 1.0f : 0.5f);
             }
 
             if (!isChecked) {
+                // Stop music when switch is turned off
                 MusicManager.stopMusic();
             } else {
+                // Resume music if a track is selected
                 if (settings.getSelectedMusicId() != -1) {
                     new Thread(() -> {
                         MusicTrack track = database.gameDao().getMusicTrack(settings.getSelectedMusicId());
@@ -112,20 +116,7 @@ public class SettingsActivity extends AppCompatActivity {
             int totalStars = (progress != null) ? progress.getTotalStars() : 0;
 
             runOnUiThread(() -> {
-                musicRadioGroup.removeAllViews();
-
-                // Add "No Music" option
-                RadioButton noMusicBtn = new RadioButton(this);
-                noMusicBtn.setText("🔇 No Music");
-                noMusicBtn.setId(-1);
-                noMusicBtn.setTextSize(16);
-                noMusicBtn.setPadding(20, 20, 20, 20);
-                noMusicBtn.setEnabled(settings.isMusicEnabled());
-                musicRadioGroup.addView(noMusicBtn);
-
-                if (settings.getSelectedMusicId() == -1) {
-                    noMusicBtn.setChecked(true);
-                }
+                musicTracksContainer.removeAllViews();
 
                 // Update unlock hint
                 if (totalStars < 2) {
@@ -136,86 +127,169 @@ public class SettingsActivity extends AppCompatActivity {
                     unlockHintText.setVisibility(TextView.VISIBLE);
                 }
 
-                // Add music tracks
+                // Add "No Music" option at the top
+                addNoMusicRow();
+
+                // Add separator
+                View separator = new View(this);
+                separator.setLayoutParams(new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        2
+                ));
+                separator.setBackgroundColor(0xFFE0E0E0);
+                LinearLayout.LayoutParams sepParams = (LinearLayout.LayoutParams) separator.getLayoutParams();
+                sepParams.setMargins(0, 10, 0, 10);
+                separator.setLayoutParams(sepParams);
+                musicTracksContainer.addView(separator);
+
+                // Add music tracks in table format
                 for (MusicTrack track : allTracks) {
-                    // Create a container for radio button + unlock button
-                    LinearLayout trackLayout = new LinearLayout(this);
-                    trackLayout.setOrientation(LinearLayout.HORIZONTAL);
-                    trackLayout.setPadding(10, 10, 10, 10);
-
-                    RadioButton radioButton = new RadioButton(this);
-                    String lockIcon = track.isUnlocked() ? "🎵" : "🔒";
-                    String storyEmoji = getStoryEmoji(track.getStoryMode());
-                    String displayText = String.format("%s %s %s", lockIcon, storyEmoji, track.getTrackName());
-
-                    radioButton.setText(displayText);
-                    radioButton.setId(track.getId());
-                    radioButton.setEnabled(track.isUnlocked() && settings.isMusicEnabled());
-                    radioButton.setClickable(track.isUnlocked());
-                    radioButton.setTextSize(14);
-                    radioButton.setPadding(10, 15, 10, 15);
-
-                    LinearLayout.LayoutParams radioParams = new LinearLayout.LayoutParams(
-                            0,
-                            LinearLayout.LayoutParams.WRAP_CONTENT,
-                            1f
-                    );
-                    radioButton.setLayoutParams(radioParams);
-
-                    if (settings.getSelectedMusicId() == track.getId()) {
-                        radioButton.setChecked(true);
-                    }
-
-                    trackLayout.addView(radioButton);
-
-                    // Add unlock button if track is locked and user has 2+ stars
-                    if (!track.isUnlocked() && totalStars >= 2) {
-                        Button unlockBtn = new Button(this);
-                        unlockBtn.setText("Unlock (2⭐)");
-                        unlockBtn.setTextSize(12);
-                        unlockBtn.setBackgroundColor(0xFF4CAF50);
-                        unlockBtn.setTextColor(0xFFFFFFFF);
-                        unlockBtn.setPadding(20, 10, 20, 10);
-
-                        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
-                                LinearLayout.LayoutParams.WRAP_CONTENT,
-                                LinearLayout.LayoutParams.WRAP_CONTENT
-                        );
-                        btnParams.setMargins(10, 0, 0, 0);
-                        unlockBtn.setLayoutParams(btnParams);
-
-                        final MusicTrack finalTrack = track;
-                        unlockBtn.setOnClickListener(v -> showUnlockDialog(finalTrack));
-
-                        trackLayout.addView(unlockBtn);
-                    }
-
-                    musicRadioGroup.addView(trackLayout);
+                    addMusicTrackRow(track, totalStars);
                 }
 
-                musicRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-                    settings.setSelectedMusicId(checkedId);
-                    saveSettings();
-
-                    if (checkedId != -1) {
-                        new Thread(() -> {
-                            MusicTrack selected = database.gameDao().getMusicTrack(checkedId);
-                            if (selected != null) {
-                                runOnUiThread(() -> {
-                                    Toast.makeText(this, "Now playing: " + selected.getTrackName(), Toast.LENGTH_SHORT).show();
-                                    if (settings.isMusicEnabled()) {
-                                        MusicManager.playMusic(this, selected.getMusicResId());
-                                    }
-                                });
-                            }
-                        }).start();
-                    } else {
-                        Toast.makeText(this, "Music disabled", Toast.LENGTH_SHORT).show();
-                        MusicManager.stopMusic();
-                    }
-                });
+                // Enable/disable based on music switch
+                boolean enabled = settings.isMusicEnabled();
+                for (int i = 0; i < musicTracksContainer.getChildCount(); i++) {
+                    View child = musicTracksContainer.getChildAt(i);
+                    child.setEnabled(enabled);
+                    child.setAlpha(enabled ? 1.0f : 0.5f);
+                }
             });
         }).start();
+    }
+
+    private void addNoMusicRow() {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(20, 20, 20, 20);
+        row.setBackgroundColor(0xFFF5F5F5);
+
+        LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        rowParams.setMargins(0, 0, 0, 5);
+        row.setLayoutParams(rowParams);
+
+        // Left side - Track name
+        TextView trackName = new TextView(this);
+        trackName.setText("🔇 No Music");
+        trackName.setTextSize(16);
+        trackName.setTextColor(0xFF333333);
+        LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1
+        );
+        trackName.setLayoutParams(nameParams);
+
+        // Right side - Radio button
+        RadioButton radioButton = new RadioButton(this);
+        radioButton.setChecked(settings.getSelectedMusicId() == -1);
+        radioButton.setOnClickListener(v -> {
+            settings.setSelectedMusicId(-1);
+            saveSettings();
+            MusicManager.stopMusic();
+            Toast.makeText(this, "Music disabled", Toast.LENGTH_SHORT).show();
+            loadMusicTracks(); // Refresh to update radio buttons
+        });
+
+        row.addView(trackName);
+        row.addView(radioButton);
+        musicTracksContainer.addView(row);
+    }
+
+    private void addMusicTrackRow(MusicTrack track, int totalStars) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(20, 20, 20, 20);
+        row.setBackgroundColor(track.isUnlocked() ? 0xFFF5F5F5 : 0xFFE0E0E0);
+
+        LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        rowParams.setMargins(0, 0, 0, 5);
+        row.setLayoutParams(rowParams);
+
+        // Left side - Track info
+        LinearLayout leftContainer = new LinearLayout(this);
+        leftContainer.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams leftParams = new LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1
+        );
+        leftContainer.setLayoutParams(leftParams);
+
+        TextView trackName = new TextView(this);
+        String lockIcon = track.isUnlocked() ? "🎵" : "🔒";
+        String storyEmoji = getStoryEmoji(track.getStoryMode());
+        trackName.setText(String.format("%s %s %s", lockIcon, storyEmoji, track.getTrackName()));
+        trackName.setTextSize(16);
+        trackName.setTextColor(track.isUnlocked() ? 0xFF333333 : 0xFF999999);
+
+        TextView storyName = new TextView(this);
+        storyName.setText(getStoryName(track.getStoryMode()));
+        storyName.setTextSize(12);
+        storyName.setTextColor(0xFF666666);
+        storyName.setPadding(0, 4, 0, 0);
+
+        leftContainer.addView(trackName);
+        leftContainer.addView(storyName);
+
+        // Right side - Action buttons
+        LinearLayout rightContainer = new LinearLayout(this);
+        rightContainer.setOrientation(LinearLayout.HORIZONTAL);
+        rightContainer.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams rightParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        rightContainer.setLayoutParams(rightParams);
+
+        if (track.isUnlocked()) {
+            // Show radio button for selection
+            RadioButton radioButton = new RadioButton(this);
+            radioButton.setChecked(settings.getSelectedMusicId() == track.getId());
+            radioButton.setOnClickListener(v -> {
+                settings.setSelectedMusicId(track.getId());
+                saveSettings();
+
+                if (settings.isMusicEnabled()) {
+                    MusicManager.playMusic(this, track.getMusicResId());
+                    Toast.makeText(this, "Now playing: " + track.getTrackName(), Toast.LENGTH_SHORT).show();
+                }
+                loadMusicTracks(); // Refresh to update radio buttons
+            });
+            rightContainer.addView(radioButton);
+        } else {
+            // Show unlock button if user has enough stars
+            if (totalStars >= 2) {
+                Button unlockBtn = new Button(this);
+                unlockBtn.setText("Unlock (2⭐)");
+                unlockBtn.setTextSize(12);
+                unlockBtn.setBackgroundColor(0xFF4CAF50);
+                unlockBtn.setTextColor(0xFFFFFFFF);
+                unlockBtn.setPadding(30, 15, 30, 15);
+                unlockBtn.setOnClickListener(v -> showUnlockDialog(track));
+                rightContainer.addView(unlockBtn);
+            } else {
+                // Show locked status
+                TextView lockedText = new TextView(this);
+                lockedText.setText("🔒 Locked");
+                lockedText.setTextSize(14);
+                lockedText.setTextColor(0xFF999999);
+                lockedText.setPadding(20, 0, 0, 0);
+                rightContainer.addView(lockedText);
+            }
+        }
+
+        row.addView(leftContainer);
+        row.addView(rightContainer);
+        musicTracksContainer.addView(row);
     }
 
     private void showUnlockDialog(MusicTrack track) {

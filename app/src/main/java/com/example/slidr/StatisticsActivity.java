@@ -1,5 +1,6 @@
 package com.example.slidr;
 
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.widget.Button;
@@ -10,13 +11,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.slidr.database.AppDatabase;
-import com.example.slidr.database.GameHistory;
 import com.example.slidr.database.Statistics;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 public class StatisticsActivity extends AppCompatActivity {
 
@@ -49,7 +46,16 @@ public class StatisticsActivity extends AppCompatActivity {
                     .show();
         });
 
-        historyBtn.setOnClickListener(v -> showGameHistory());
+        historyBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(this, HistoryActivity.class);
+            startActivity(intent);
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadStatistics();
     }
 
     private void loadStatistics() {
@@ -131,48 +137,6 @@ public class StatisticsActivity extends AppCompatActivity {
         card.addView(title);
         card.addView(details);
         statsContainer.addView(card);
-    }
-
-    private void showGameHistory() {
-        new Thread(() -> {
-            List<GameHistory> games = database.gameDao().getAllGames();
-
-            runOnUiThread(() -> {
-                if (games.isEmpty()) {
-                    new AlertDialog.Builder(this)
-                            .setTitle("Game History")
-                            .setMessage("No games in history yet!")
-                            .setPositiveButton("OK", null)
-                            .show();
-                } else {
-                    StringBuilder history = new StringBuilder();
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault());
-
-                    int count = 0;
-                    for (GameHistory game : games) {
-                        if (count >= 20) break; // Show only last 20 games
-
-                        String difficulty = game.getGridSize() == 3 ? "Easy" :
-                                game.getGridSize() == 4 ? "Medium" : "Hard";
-
-                        history.append(String.format("%s - %s\nMoves: %d | Time: %s\n%s\n\n",
-                                difficulty,
-                                dateFormat.format(new Date(game.getTimestamp())),
-                                game.getMoves(),
-                                formatTime(game.getTimeInSeconds()),
-                                game.isCompleted() ? "✓ Completed" : "✗ Incomplete"
-                        ));
-                        count++;
-                    }
-
-                    new AlertDialog.Builder(this)
-                            .setTitle("Recent Games")
-                            .setMessage(history.toString())
-                            .setPositiveButton("OK", null)
-                            .show();
-                }
-            });
-        }).start();
     }
 
     private void clearAllData() {
