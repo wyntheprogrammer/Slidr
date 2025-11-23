@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.slidr.database.AppDatabase;
 import com.example.slidr.database.GameHistory;
 import com.example.slidr.database.Statistics;
+import com.example.slidr.database.User;
 import com.example.slidr.utils.MusicManager;
 
 import java.util.ArrayList;
@@ -72,7 +73,7 @@ public class GameActivity extends AppCompatActivity {
 
         loadBestScores();
         initializeGame();
-        startBackgroundMusic(); // NEW: Start music
+        startBackgroundMusic();
 
         shuffleBtn.setOnClickListener(v -> {
             new AlertDialog.Builder(this)
@@ -296,23 +297,36 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private void saveGameToDatabase(boolean completed, long timeInSeconds) {
-        GameHistory game = new GameHistory(
-                gridSize,
-                moves,
-                timeInSeconds,
-                System.currentTimeMillis(),
-                completed
-        );
+        new Thread(() -> {
+            User currentUser = database.gameDao().getLoggedInUser();
+            int userId = (currentUser != null) ? currentUser.getId() : 0;
 
-        new Thread(() -> database.gameDao().insertGame(game)).start();
+            GameHistory game = new GameHistory(
+                    userId,
+                    gridSize,
+                    moves,
+                    timeInSeconds,
+                    System.currentTimeMillis(),
+                    completed
+            );
+
+            database.gameDao().insertGame(game);
+        }).start();
     }
 
     private void updateStatistics(boolean completed, long timeInSeconds) {
         new Thread(() -> {
-            Statistics stats = database.gameDao().getStatistics(gridSize);
+            User currentUser = database.gameDao().getLoggedInUser();
+            if (currentUser == null) {
+                // Guest mode - don't save statistics
+                return;
+            }
+
+            int userId = currentUser.getId();
+            Statistics stats = database.gameDao().getStatisticsByUser(userId, gridSize);
 
             if (stats == null) {
-                stats = new Statistics(gridSize);
+                stats = new Statistics(userId, gridSize);
             }
 
             stats.setGamesPlayed(stats.getGamesPlayed() + 1);
@@ -331,7 +345,7 @@ public class GameActivity extends AppCompatActivity {
                 }
             }
 
-            if (stats.getGamesPlayed() == 1) {
+            if (stats.getId() == 0) {
                 database.gameDao().insertStatistics(stats);
             } else {
                 database.gameDao().updateStatistics(stats);
@@ -434,15 +448,14 @@ public class GameActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         stopTimer();
-        MusicManager.pauseMusic(); // NEW: Pause music
+        MusicManager.pauseMusic();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        MusicManager.resumeMusic(); // NEW: Resume music
+        MusicManager.resumeMusic();
 
-        // If music was never started, start it
         if (!MusicManager.isPlaying()) {
             startBackgroundMusic();
         }
@@ -452,10 +465,9 @@ public class GameActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         stopTimer();
-        MusicManager.stopMusic(); // NEW: Stop music when leaving
+        MusicManager.stopMusic();
     }
 
-    // NEW: Start background music based on settings
     private void startBackgroundMusic() {
         new Thread(() -> {
             try {
@@ -469,7 +481,6 @@ public class GameActivity extends AppCompatActivity {
                     }
                 }
             } catch (Exception e) {
-                // Music is optional, don't crash if it fails
                 e.printStackTrace();
             }
         }).start();

@@ -35,39 +35,47 @@ public interface GameDao {
     @Query("SELECT * FROM users WHERE id = :userId LIMIT 1")
     User getUserById(int userId);
 
-    // Game History
+    // Game History - Now per user
     @Insert
     void insertGame(GameHistory game);
 
-    @Query("SELECT * FROM game_history ORDER BY timestamp DESC")
+    @Query("SELECT * FROM game_history WHERE userId = :userId ORDER BY timestamp DESC")
+    List<GameHistory> getAllGamesByUser(int userId);
+
+    // Get current logged-in user's game history
+    @Query("SELECT gh.* FROM game_history gh INNER JOIN users u ON gh.userId = u.id WHERE u.isLoggedIn = 1 ORDER BY gh.timestamp DESC")
     List<GameHistory> getAllGames();
 
-    @Query("SELECT * FROM game_history WHERE gridSize = :gridSize ORDER BY timestamp DESC LIMIT 10")
+    @Query("SELECT gh.* FROM game_history gh INNER JOIN users u ON gh.userId = u.id WHERE u.isLoggedIn = 1 AND gh.gridSize = :gridSize ORDER BY gh.timestamp DESC LIMIT 10")
     List<GameHistory> getRecentGamesBySize(int gridSize);
 
-    @Query("SELECT * FROM game_history WHERE completed = 1 AND gridSize = :gridSize ORDER BY moves ASC LIMIT 1")
+    @Query("SELECT gh.* FROM game_history gh INNER JOIN users u ON gh.userId = u.id WHERE u.isLoggedIn = 1 AND gh.completed = 1 AND gh.gridSize = :gridSize ORDER BY gh.moves ASC LIMIT 1")
     GameHistory getBestGameByMoves(int gridSize);
 
-    @Query("SELECT * FROM game_history WHERE completed = 1 AND gridSize = :gridSize ORDER BY timeInSeconds ASC LIMIT 1")
+    @Query("SELECT gh.* FROM game_history gh INNER JOIN users u ON gh.userId = u.id WHERE u.isLoggedIn = 1 AND gh.completed = 1 AND gh.gridSize = :gridSize ORDER BY gh.timeInSeconds ASC LIMIT 1")
     GameHistory getBestGameByTime(int gridSize);
 
-    @Query("DELETE FROM game_history")
+    @Query("DELETE FROM game_history WHERE userId IN (SELECT id FROM users WHERE isLoggedIn = 1)")
     void deleteAllGames();
 
-    // Statistics
+    // Statistics - Now per user
     @Insert
     void insertStatistics(Statistics statistics);
 
     @Update
     void updateStatistics(Statistics statistics);
 
-    @Query("SELECT * FROM statistics WHERE gridSize = :gridSize")
+    @Query("SELECT * FROM statistics WHERE userId = :userId AND gridSize = :gridSize LIMIT 1")
+    Statistics getStatisticsByUser(int userId, int gridSize);
+
+    // Get current logged-in user's statistics
+    @Query("SELECT s.* FROM statistics s INNER JOIN users u ON s.userId = u.id WHERE u.isLoggedIn = 1 AND s.gridSize = :gridSize LIMIT 1")
     Statistics getStatistics(int gridSize);
 
-    @Query("SELECT * FROM statistics")
+    @Query("SELECT s.* FROM statistics s INNER JOIN users u ON s.userId = u.id WHERE u.isLoggedIn = 1")
     List<Statistics> getAllStatistics();
 
-    @Query("DELETE FROM statistics")
+    @Query("DELETE FROM statistics WHERE userId IN (SELECT id FROM users WHERE isLoggedIn = 1)")
     void deleteAllStatistics();
 
     // User Progress (Stars) - Now per user

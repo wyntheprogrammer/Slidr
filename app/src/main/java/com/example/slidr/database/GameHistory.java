@@ -8,13 +8,15 @@ public class GameHistory {
     @PrimaryKey(autoGenerate = true)
     private int id;
 
+    private int userId; // Link to User table
     private int gridSize;
     private int moves;
     private long timeInSeconds;
     private long timestamp;
     private boolean completed;
 
-    public GameHistory(int gridSize, int moves, long timeInSeconds, long timestamp, boolean completed) {
+    public GameHistory(int userId, int gridSize, int moves, long timeInSeconds, long timestamp, boolean completed) {
+        this.userId = userId;
         this.gridSize = gridSize;
         this.moves = moves;
         this.timeInSeconds = timeInSeconds;
@@ -25,6 +27,9 @@ public class GameHistory {
     // Getters and Setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
+
+    public int getUserId() { return userId; }
+    public void setUserId(int userId) { this.userId = userId; }
 
     public int getGridSize() { return gridSize; }
     public void setGridSize(int gridSize) { this.gridSize = gridSize; }

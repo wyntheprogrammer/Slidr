@@ -8,6 +8,8 @@ import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.ImageButton;
@@ -320,9 +322,11 @@ public class ImageGameActivity extends AppCompatActivity {
             PuzzleUnlock unlock = database.gameDao().getPuzzleUnlock(storyId, arcIndex);
 
             boolean earnedNewStars = false;
-            if (starsToEarn > unlock.getStarsEarned()) {
-                int starDifference = starsToEarn - unlock.getStarsEarned();
+            int previousStars = unlock.getStarsEarned();
+            int starDifference = 0;
 
+            if (starsToEarn > unlock.getStarsEarned()) {
+                starDifference = starsToEarn - unlock.getStarsEarned();
                 unlock.setStarsEarned(starsToEarn);
                 earnedNewStars = true;
 
@@ -331,8 +335,8 @@ public class ImageGameActivity extends AppCompatActivity {
                 progress.setTotalStars(progress.getTotalStars() + starDifference);
                 database.gameDao().updateUserProgress(progress);
 
-                // Unlock music for this arc
-                unlockMusic(storyId, arcIndex);
+                // Check and unlock music if user now has 2+ stars
+                checkAndUnlockMusic(storyId, arcIndex, progress.getTotalStars());
             }
 
             // Always update best scores
@@ -346,45 +350,87 @@ public class ImageGameActivity extends AppCompatActivity {
             database.gameDao().updatePuzzleUnlock(unlock);
 
             final boolean finalEarnedStars = earnedNewStars;
-            runOnUiThread(() -> showCompletionDialog(starsToEarn, timeInSeconds, finalEarnedStars));
+            final int finalStarDifference = starDifference;
+            runOnUiThread(() -> showSuccessDialog(starsToEarn, timeInSeconds, finalEarnedStars, finalStarDifference, previousStars));
         }).start();
     }
 
-    private void unlockMusic(String storyId, int arcIndex) {
+    private void checkAndUnlockMusic(String storyId, int arcIndex, int totalStars) {
         MusicTrack track = database.gameDao().getMusicForArc(storyId, arcIndex);
-        if (track != null && !track.isUnlocked()) {
+        if (track != null && !track.isUnlocked() && totalStars >= 2) {
             track.setUnlocked(true);
             database.gameDao().updateMusicTrack(track);
         }
     }
 
-    private void showCompletionDialog(int stars, long timeInSeconds, boolean earnedNewStars) {
+    private void showSuccessDialog(int stars, long timeInSeconds, boolean earnedNewStars, int starDifference, int previousStars) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_success, null);
+        builder.setView(dialogView);
+
+        AlertDialog dialog = builder.create();
+        dialog.setCancelable(false);
+
+        // Set up views
+        TextView titleText = dialogView.findViewById(R.id.tvSuccessTitle);
+        TextView starsText = dialogView.findViewById(R.id.tvStarsEarned);
+        TextView statsText = dialogView.findViewById(R.id.tvGameStats);
+        TextView rewardText = dialogView.findViewById(R.id.tvRewardText);
+        Button playAgainBtn = dialogView.findViewById(R.id.btnPlayAgain);
+        Button backBtn = dialogView.findViewById(R.id.btnBackToMenu);
+
+        titleText.setText("🎉 Puzzle Complete! 🎉");
+
         String starDisplay = "⭐".repeat(stars);
-        String message = String.format(
-                "%s Earned!\n\nMoves: %d\nTime: %s",
-                starDisplay, moves, formatTime(timeInSeconds)
-        );
+        starsText.setText(starDisplay);
+
+        statsText.setText(String.format("Moves: %d\nTime: %s", moves, formatTime(timeInSeconds)));
 
         if (earnedNewStars) {
-            message += "\n\n🎉 NEW STARS EARNED! 🎉\n🎵 Music Unlocked!";
+            rewardText.setVisibility(View.VISIBLE);
+            String rewardMessage = String.format("🎊 +%d Star%s Earned!\nTotal: %d → %d stars",
+                    starDifference,
+                    starDifference > 1 ? "s" : "",
+                    previousStars,
+                    stars);
+
+            // Check if music was unlocked
+            new Thread(() -> {
+                UserProgress progress = database.gameDao().getUserProgress();
+                if (progress.getTotalStars() >= 2) {
+                    MusicTrack track = database.gameDao().getMusicForArc(storyId, arcIndex);
+                    if (track != null && track.isUnlocked()) {
+                        runOnUiThread(() -> {
+                            rewardText.setText(rewardMessage + "\n🎵 Music Unlocked!");
+                        });
+                        return;
+                    }
+                }
+                runOnUiThread(() -> {
+                    rewardText.setText(rewardMessage);
+                });
+            }).start();
         } else {
-            message += "\n\n(Already earned " + stars + " star" + (stars > 1 ? "s" : "") + " on this arc)";
+            rewardText.setVisibility(View.VISIBLE);
+            rewardText.setText("Already earned " + stars + " star" + (stars > 1 ? "s" : "") + " on this difficulty");
         }
 
-        new AlertDialog.Builder(this)
-                .setTitle("Puzzle Complete!")
-                .setMessage(message)
-                .setPositiveButton("Play Again", (dialog, which) -> {
-                    moves = 0;
-                    elapsedTime = 0;
-                    updateMovesText();
-                    updateTimerText();
-                    shufflePuzzle();
-                    startTimer();
-                })
-                .setNegativeButton("Back", (dialog, which) -> finish())
-                .setCancelable(false)
-                .show();
+        playAgainBtn.setOnClickListener(v -> {
+            dialog.dismiss();
+            moves = 0;
+            elapsedTime = 0;
+            updateMovesText();
+            updateTimerText();
+            shufflePuzzle();
+            startTimer();
+        });
+
+        backBtn.setOnClickListener(v -> {
+            dialog.dismiss();
+            finish();
+        });
+
+        dialog.show();
     }
 
     private void startTimer() {

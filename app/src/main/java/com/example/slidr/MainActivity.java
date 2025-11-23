@@ -22,8 +22,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView starsText;
     private FrameLayout storyModeFrame;
     private ImageButton musicButton, profileButton;
+    private Button storyModeBtn;
     private GameSettings settings;
     private User currentUser;
+    private boolean isGuestMode = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,9 +38,9 @@ public class MainActivity extends AppCompatActivity {
         storyModeFrame = findViewById(R.id.storyModeFrame);
         musicButton = findViewById(R.id.btnMusicFloat);
         profileButton = findViewById(R.id.btnProfileFloat);
+        storyModeBtn = findViewById(R.id.btnStoryMode);
 
         Button classicBtn = findViewById(R.id.btnClassic);
-        Button storyModeBtn = findViewById(R.id.btnStoryMode);
         Button onePieceBtn = findViewById(R.id.btnOnePiece);
         Button dragonBallBtn = findViewById(R.id.btnDragonBall);
         Button bleachBtn = findViewById(R.id.btnBleach);
@@ -56,9 +58,13 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Story mode - show selection frame
+        // Story mode - show selection frame OR prompt login if guest
         storyModeBtn.setOnClickListener(v -> {
-            storyModeFrame.setVisibility(View.VISIBLE);
+            if (isGuestMode) {
+                showGuestModeDialog();
+            } else {
+                storyModeFrame.setVisibility(View.VISIBLE);
+            }
         });
 
         // Back from story selection
@@ -100,20 +106,11 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Profile button - NEW: Open ProfileActivity
+        // Profile button
         profileButton.setOnClickListener(v -> {
             if (currentUser == null) {
                 // Guest mode - offer to login
-                new AlertDialog.Builder(this)
-                        .setTitle("Guest Mode")
-                        .setMessage("You're playing as a guest. Create an account to save your progress!")
-                        .setPositiveButton("Login", (dialog, which) -> {
-                            Intent intent = new Intent(this, LoginActivity.class);
-                            startActivity(intent);
-                            finish();
-                        })
-                        .setNegativeButton("Continue as Guest", null)
-                        .show();
+                showGuestModeDialog();
             } else {
                 // Open profile activity
                 Intent intent = new Intent(this, ProfileActivity.class);
@@ -145,6 +142,7 @@ public class MainActivity extends AppCompatActivity {
         loadTotalStars();
         loadUserInfo();
         updateMusicButton();
+        updateStoryModeButton();
     }
 
     @Override
@@ -158,24 +156,57 @@ public class MainActivity extends AppCompatActivity {
     private void loadUserInfo() {
         new Thread(() -> {
             currentUser = database.gameDao().getLoggedInUser();
+            isGuestMode = (currentUser == null);
+
             if (currentUser != null) {
                 // Initialize user data if they just logged in
                 AppDatabase.initializeUserData(database, currentUser.getId());
             }
+
+            runOnUiThread(this::updateStoryModeButton);
         }).start();
+    }
+
+    private void updateStoryModeButton() {
+        if (isGuestMode) {
+            storyModeBtn.setText("📖 Story Mode 🔒");
+            storyModeBtn.setAlpha(0.6f);
+        } else {
+            storyModeBtn.setText("📖 Story Mode");
+            storyModeBtn.setAlpha(1.0f);
+        }
+    }
+
+    private void showGuestModeDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Login Required")
+                .setMessage("Story Mode is only available for registered users. Create an account to unlock Story Mode and save your progress!")
+                .setPositiveButton("Login / Register", (dialog, which) -> {
+                    Intent intent = new Intent(this, LoginActivity.class);
+                    startActivity(intent);
+                    finish();
+                })
+                .setNegativeButton("Continue as Guest", null)
+                .show();
     }
 
     private void loadTotalStars() {
         new Thread(() -> {
-            UserProgress progress = database.gameDao().getUserProgress();
-            if (progress != null) {
+            if (isGuestMode) {
                 runOnUiThread(() -> {
-                    starsText.setText("⭐ " + progress.getTotalStars() + " Stars");
+                    starsText.setText("⭐ Guest Mode");
                 });
             } else {
-                runOnUiThread(() -> {
-                    starsText.setText("⭐ 0 Stars");
-                });
+                UserProgress progress = database.gameDao().getUserProgress();
+                if (progress != null) {
+                    runOnUiThread(() -> {
+                        starsText.setText("⭐ " + progress.getTotalStars() + " Stars");
+                    });
+                } else {
+                    runOnUiThread(() -> {
+                        starsText.setText("⭐ 0 Stars");
+                    });
+                }
             }
         }).start();
     }

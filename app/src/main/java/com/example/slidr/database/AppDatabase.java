@@ -16,7 +16,7 @@ import java.util.List;
         PuzzleUnlock.class,
         MusicTrack.class,
         GameSettings.class
-}, version = 5, exportSchema = false)
+}, version = 6, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static AppDatabase instance;
@@ -90,10 +90,10 @@ public abstract class AppDatabase extends RoomDatabase {
             return;
         }
 
-        // One Piece music tracks
+        // One Piece music tracks - ALL locked initially (except Arc 1)
         db.gameDao().insertMusicTrack(new MusicTrack(
                 "We Are!", "onepiece", 0,
-                com.example.slidr.R.raw.onepiece_arc1_music, true));
+                com.example.slidr.R.raw.onepiece_arc1_music, false)); // Locked
         db.gameDao().insertMusicTrack(new MusicTrack(
                 "Believe", "onepiece", 1,
                 com.example.slidr.R.raw.onepiece_arc2_music, false));
@@ -104,10 +104,10 @@ public abstract class AppDatabase extends RoomDatabase {
                 "One Day", "onepiece", 3,
                 com.example.slidr.R.raw.onepiece_arc4_music, false));
 
-        // Dragon Ball Z music tracks
+        // Dragon Ball Z music tracks - ALL locked initially
         db.gameDao().insertMusicTrack(new MusicTrack(
                 "Cha-La Head-Cha-La", "dragonball", 0,
-                com.example.slidr.R.raw.dragonball_arc1_music, true));
+                com.example.slidr.R.raw.dragonball_arc1_music, false));
         db.gameDao().insertMusicTrack(new MusicTrack(
                 "We Gotta Power", "dragonball", 1,
                 com.example.slidr.R.raw.dragonball_arc2_music, false));
@@ -118,10 +118,10 @@ public abstract class AppDatabase extends RoomDatabase {
                 "Dan Dan Kokoro", "dragonball", 3,
                 com.example.slidr.R.raw.dragonball_arc4_music, false));
 
-        // Bleach music tracks
+        // Bleach music tracks - ALL locked initially
         db.gameDao().insertMusicTrack(new MusicTrack(
                 "Asterisk", "bleach", 0,
-                com.example.slidr.R.raw.bleach_arc1_music, true));
+                com.example.slidr.R.raw.bleach_arc1_music, false));
         db.gameDao().insertMusicTrack(new MusicTrack(
                 "Ichirin no Hana", "bleach", 1,
                 com.example.slidr.R.raw.bleach_arc2_music, false));

@@ -5,7 +5,10 @@ import androidx.room.PrimaryKey;
 
 @Entity(tableName = "statistics")
 public class Statistics {
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
+    private int id;
+
+    private int userId; // Link to User table
     private int gridSize;
 
     private int gamesPlayed;
@@ -15,7 +18,8 @@ public class Statistics {
     private int totalMoves;
     private long totalTime;
 
-    public Statistics(int gridSize) {
+    public Statistics(int userId, int gridSize) {
+        this.userId = userId;
         this.gridSize = gridSize;
         this.gamesPlayed = 0;
         this.gamesCompleted = 0;
@@ -26,6 +30,12 @@ public class Statistics {
     }
 
     // Getters and Setters
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
+
+    public int getUserId() { return userId; }
+    public void setUserId(int userId) { this.userId = userId; }
+
     public int getGridSize() { return gridSize; }
     public void setGridSize(int gridSize) { this.gridSize = gridSize; }
 

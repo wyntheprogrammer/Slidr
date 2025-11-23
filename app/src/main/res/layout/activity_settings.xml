@@ -49,17 +49,22 @@
         android:text="Select Music Track"
         android:textSize="20sp"
         android:textColor="#666666"
-        android:layout_marginBottom="15dp"
+        android:layout_marginBottom="10dp"
         android:paddingStart="10dp"/>
 
     <TextView
-        android:layout_width="wrap_content"
+        android:id="@+id/tvUnlockHint"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Complete story arcs to unlock more music!"
-        android:textSize="14sp"
-        android:textColor="#999999"
+        android:text="🎵 Earn 2 stars to unlock music!"
+        android:textSize="16sp"
+        android:textColor="#FF9800"
+        android:textStyle="bold"
+        android:textAlignment="center"
+        android:padding="16dp"
+        android:background="#FFF3E0"
         android:layout_marginBottom="15dp"
-        android:paddingStart="10dp"/>
+        android:visibility="visible"/>
 
     <ScrollView
         android:layout_width="match_parent"
