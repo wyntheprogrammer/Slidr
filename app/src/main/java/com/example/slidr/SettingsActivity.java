@@ -1,13 +1,16 @@
 package com.example.slidr;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.slidr.database.AppDatabase;
@@ -25,6 +28,7 @@ public class SettingsActivity extends AppCompatActivity {
     private RadioGroup musicRadioGroup;
     private GameSettings settings;
     private TextView unlockHintText;
+    private int userTotalStars = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +44,7 @@ public class SettingsActivity extends AppCompatActivity {
         Button backBtn = findViewById(R.id.btnBack);
 
         loadSettings();
+        loadUserStars();
         loadMusicTracks();
 
         musicSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -47,7 +52,10 @@ public class SettingsActivity extends AppCompatActivity {
             saveSettings();
             musicRadioGroup.setEnabled(isChecked);
             for (int i = 0; i < musicRadioGroup.getChildCount(); i++) {
-                musicRadioGroup.getChildAt(i).setEnabled(isChecked);
+                View child = musicRadioGroup.getChildAt(i);
+                if (child instanceof RadioButton) {
+                    child.setEnabled(isChecked);
+                }
             }
 
             if (!isChecked) {
@@ -72,6 +80,7 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        loadUserStars();
         loadMusicTracks();
     }
 
@@ -86,6 +95,13 @@ public class SettingsActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 musicSwitch.setChecked(settings.isMusicEnabled());
             });
+        }).start();
+    }
+
+    private void loadUserStars() {
+        new Thread(() -> {
+            UserProgress progress = database.gameDao().getUserProgress();
+            userTotalStars = (progress != null) ? progress.getTotalStars() : 0;
         }).start();
     }
 
@@ -104,6 +120,7 @@ public class SettingsActivity extends AppCompatActivity {
                 noMusicBtn.setId(-1);
                 noMusicBtn.setTextSize(16);
                 noMusicBtn.setPadding(20, 20, 20, 20);
+                noMusicBtn.setEnabled(settings.isMusicEnabled());
                 musicRadioGroup.addView(noMusicBtn);
 
                 if (settings.getSelectedMusicId() == -1) {
@@ -121,28 +138,59 @@ public class SettingsActivity extends AppCompatActivity {
 
                 // Add music tracks
                 for (MusicTrack track : allTracks) {
-                    RadioButton radioButton = new RadioButton(this);
+                    // Create a container for radio button + unlock button
+                    LinearLayout trackLayout = new LinearLayout(this);
+                    trackLayout.setOrientation(LinearLayout.HORIZONTAL);
+                    trackLayout.setPadding(10, 10, 10, 10);
 
+                    RadioButton radioButton = new RadioButton(this);
                     String lockIcon = track.isUnlocked() ? "🎵" : "🔒";
                     String storyEmoji = getStoryEmoji(track.getStoryMode());
-
                     String displayText = String.format("%s %s %s", lockIcon, storyEmoji, track.getTrackName());
-                    if (!track.isUnlocked()) {
-                        displayText += " (Requires 2⭐ + Complete Arc)";
-                    }
 
                     radioButton.setText(displayText);
                     radioButton.setId(track.getId());
                     radioButton.setEnabled(track.isUnlocked() && settings.isMusicEnabled());
                     radioButton.setClickable(track.isUnlocked());
                     radioButton.setTextSize(14);
-                    radioButton.setPadding(20, 15, 20, 15);
+                    radioButton.setPadding(10, 15, 10, 15);
+
+                    LinearLayout.LayoutParams radioParams = new LinearLayout.LayoutParams(
+                            0,
+                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            1f
+                    );
+                    radioButton.setLayoutParams(radioParams);
 
                     if (settings.getSelectedMusicId() == track.getId()) {
                         radioButton.setChecked(true);
                     }
 
-                    musicRadioGroup.addView(radioButton);
+                    trackLayout.addView(radioButton);
+
+                    // Add unlock button if track is locked and user has 2+ stars
+                    if (!track.isUnlocked() && totalStars >= 2) {
+                        Button unlockBtn = new Button(this);
+                        unlockBtn.setText("Unlock (2⭐)");
+                        unlockBtn.setTextSize(12);
+                        unlockBtn.setBackgroundColor(0xFF4CAF50);
+                        unlockBtn.setTextColor(0xFFFFFFFF);
+                        unlockBtn.setPadding(20, 10, 20, 10);
+
+                        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.WRAP_CONTENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT
+                        );
+                        btnParams.setMargins(10, 0, 0, 0);
+                        unlockBtn.setLayoutParams(btnParams);
+
+                        final MusicTrack finalTrack = track;
+                        unlockBtn.setOnClickListener(v -> showUnlockDialog(finalTrack));
+
+                        trackLayout.addView(unlockBtn);
+                    }
+
+                    musicRadioGroup.addView(trackLayout);
                 }
 
                 musicRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
@@ -170,12 +218,63 @@ public class SettingsActivity extends AppCompatActivity {
         }).start();
     }
 
+    private void showUnlockDialog(MusicTrack track) {
+        String storyName = getStoryName(track.getStoryMode());
+
+        new AlertDialog.Builder(this)
+                .setTitle("Unlock Music Track")
+                .setMessage(String.format("Unlock %s?\n\nFrom: %s\nCost: 2 ⭐\nYour Stars: %d ⭐\nRemaining: %d ⭐",
+                        track.getTrackName(),
+                        storyName,
+                        userTotalStars,
+                        userTotalStars - 2))
+                .setPositiveButton("Unlock", (dialog, which) -> unlockMusic(track))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void unlockMusic(MusicTrack track) {
+        new Thread(() -> {
+            // Check if user still has enough stars
+            UserProgress progress = database.gameDao().getUserProgress();
+            if (progress == null || progress.getTotalStars() < 2) {
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Not enough stars!", Toast.LENGTH_SHORT).show();
+                });
+                return;
+            }
+
+            // Deduct stars
+            progress.setTotalStars(progress.getTotalStars() - 2);
+            database.gameDao().updateUserProgress(progress);
+
+            // Unlock the track
+            track.setUnlocked(true);
+            database.gameDao().updateMusicTrack(track);
+
+            runOnUiThread(() -> {
+                Toast.makeText(this, "🎵 " + track.getTrackName() + " unlocked! (-2⭐)", Toast.LENGTH_LONG).show();
+                loadUserStars();
+                loadMusicTracks();
+            });
+        }).start();
+    }
+
     private String getStoryEmoji(String storyMode) {
         switch (storyMode) {
             case "onepiece": return "🏴‍☠️";
             case "dragonball": return "🐉";
             case "bleach": return "⚔️";
             default: return "🎮";
+        }
+    }
+
+    private String getStoryName(String storyMode) {
+        switch (storyMode) {
+            case "onepiece": return "One Piece";
+            case "dragonball": return "Dragon Ball Z";
+            case "bleach": return "Bleach";
+            default: return "Classic Mode";
         }
     }
 

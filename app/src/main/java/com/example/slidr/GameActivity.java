@@ -4,6 +4,8 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.TextView;
@@ -269,31 +271,61 @@ public class GameActivity extends AppCompatActivity {
         boolean newBestMoves = moves < bestMoves;
         boolean newBestTime = timeInSeconds < bestTime;
 
-        String message = String.format("Congratulations!\n\nMoves: %d\nTime: %s",
-                moves, formatTime(timeInSeconds));
+        // Show success dialog
+        showSuccessDialog(timeInSeconds, newBestMoves, newBestTime);
+    }
+
+    private void showSuccessDialog(long timeInSeconds, boolean newBestMoves, boolean newBestTime) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_classic_success, null);
+        builder.setView(dialogView);
+
+        AlertDialog dialog = builder.create();
+        dialog.setCancelable(false);
+
+        // Set up views
+        TextView titleText = dialogView.findViewById(R.id.tvSuccessTitle);
+        TextView difficultyText = dialogView.findViewById(R.id.tvDifficulty);
+        TextView statsText = dialogView.findViewById(R.id.tvGameStats);
+        TextView recordText = dialogView.findViewById(R.id.tvRecordText);
+        Button playAgainBtn = dialogView.findViewById(R.id.btnPlayAgain);
+        Button backBtn = dialogView.findViewById(R.id.btnBackToMenu);
+
+        titleText.setText("🎉 Puzzle Solved! 🎉");
+
+        String difficultyLevel = gridSize == 3 ? "Easy" : gridSize == 4 ? "Medium" : "Hard";
+        difficultyText.setText("Difficulty: " + difficultyLevel + " (" + gridSize + "x" + gridSize + ")");
+
+        statsText.setText(String.format("Moves: %d\nTime: %s", moves, formatTime(timeInSeconds)));
 
         if (newBestMoves || newBestTime) {
-            message += "\n\n🏆 NEW RECORD! 🏆";
-            if (newBestMoves) message += "\nBest Moves!";
-            if (newBestTime) message += "\nBest Time!";
+            recordText.setVisibility(View.VISIBLE);
+            String recordMessage = "🏆 NEW RECORD! 🏆";
+            if (newBestMoves) recordMessage += "\n✨ Best Moves!";
+            if (newBestTime) recordMessage += "\n⏱️ Best Time!";
+            recordText.setText(recordMessage);
             loadBestScores(); // Reload best scores
+        } else {
+            recordText.setVisibility(View.GONE);
         }
 
-        new AlertDialog.Builder(this)
-                .setTitle("Puzzle Solved!")
-                .setMessage(message)
-                .setPositiveButton("New Game", (dialog, which) -> {
-                    moves = 0;
-                    elapsedTime = 0;
-                    moveHistory.clear();
-                    updateMovesText();
-                    updateTimerText();
-                    shufflePuzzle();
-                    startTimer();
-                })
-                .setNegativeButton("Main Menu", (dialog, which) -> finish())
-                .setCancelable(false)
-                .show();
+        playAgainBtn.setOnClickListener(v -> {
+            dialog.dismiss();
+            moves = 0;
+            elapsedTime = 0;
+            moveHistory.clear();
+            updateMovesText();
+            updateTimerText();
+            shufflePuzzle();
+            startTimer();
+        });
+
+        backBtn.setOnClickListener(v -> {
+            dialog.dismiss();
+            finish();
+        });
+
+        dialog.show();
     }
 
     private void saveGameToDatabase(boolean completed, long timeInSeconds) {
@@ -318,7 +350,6 @@ public class GameActivity extends AppCompatActivity {
         new Thread(() -> {
             User currentUser = database.gameDao().getLoggedInUser();
             if (currentUser == null) {
-                // Guest mode - don't save statistics
                 return;
             }
 
