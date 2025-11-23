@@ -1,6 +1,7 @@
 package com.example.slidr;
 
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -159,11 +160,19 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void addNoMusicRow() {
+        // Get theme colors
+        TypedValue typedValue = new TypedValue();
+        getTheme().resolveAttribute(com.google.android.material.R.attr.colorSurfaceVariant, typedValue, true);
+        int surfaceColor = typedValue.data;
+
+        getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue, true);
+        int onSurfaceColor = typedValue.data;
+
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setPadding(20, 20, 20, 20);
-        row.setBackgroundColor(0xFFF5F5F5);
+        row.setBackgroundColor(surfaceColor);
 
         LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -176,7 +185,7 @@ public class SettingsActivity extends AppCompatActivity {
         TextView trackName = new TextView(this);
         trackName.setText("🔇 No Music");
         trackName.setTextSize(16);
-        trackName.setTextColor(0xFF333333);
+        trackName.setTextColor(onSurfaceColor);
         LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
                 0,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -201,11 +210,19 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void addMusicTrackRow(MusicTrack track, int totalStars) {
+        // Get theme colors
+        TypedValue typedValue = new TypedValue();
+        getTheme().resolveAttribute(com.google.android.material.R.attr.colorSurfaceVariant, typedValue, true);
+        int surfaceColor = typedValue.data;
+
+        getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue, true);
+        int onSurfaceColor = typedValue.data;
+
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setPadding(20, 20, 20, 20);
-        row.setBackgroundColor(track.isUnlocked() ? 0xFFF5F5F5 : 0xFFE0E0E0);
+        row.setBackgroundColor(surfaceColor);
 
         LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -229,12 +246,13 @@ public class SettingsActivity extends AppCompatActivity {
         String storyEmoji = getStoryEmoji(track.getStoryMode());
         trackName.setText(String.format("%s %s %s", lockIcon, storyEmoji, track.getTrackName()));
         trackName.setTextSize(16);
-        trackName.setTextColor(track.isUnlocked() ? 0xFF333333 : 0xFF999999);
+        trackName.setTextColor(track.isUnlocked() ? onSurfaceColor : (onSurfaceColor & 0x80FFFFFF));
 
         TextView storyName = new TextView(this);
         storyName.setText(getStoryName(track.getStoryMode()));
         storyName.setTextSize(12);
-        storyName.setTextColor(0xFF666666);
+        storyName.setTextColor(onSurfaceColor);
+        storyName.setAlpha(0.6f);
         storyName.setPadding(0, 4, 0, 0);
 
         leftContainer.addView(trackName);
@@ -281,7 +299,8 @@ public class SettingsActivity extends AppCompatActivity {
                 TextView lockedText = new TextView(this);
                 lockedText.setText("🔒 Locked");
                 lockedText.setTextSize(14);
-                lockedText.setTextColor(0xFF999999);
+                lockedText.setTextColor(onSurfaceColor);
+                lockedText.setAlpha(0.5f);
                 lockedText.setPadding(20, 0, 0, 0);
                 rightContainer.addView(lockedText);
             }

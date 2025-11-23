@@ -3,6 +3,7 @@ package com.example.slidr;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -87,9 +88,17 @@ public class StoryModeActivity extends AppCompatActivity {
     }
 
     private void addArcCard(StoryData.Arc arc, PuzzleUnlock unlock, int arcIndex) {
+        // Get theme colors
+        TypedValue typedValue = new TypedValue();
+        getTheme().resolveAttribute(com.google.android.material.R.attr.colorSurfaceVariant, typedValue, true);
+        int surfaceColor = typedValue.data;
+
+        getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue, true);
+        int onSurfaceColor = typedValue.data;
+
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.HORIZONTAL);
-        card.setBackgroundColor(0xFFF5F5F5);
+        card.setBackgroundColor(surfaceColor);
         card.setPadding(20, 20, 20, 20);
         card.setGravity(Gravity.CENTER_VERTICAL);
 
@@ -125,7 +134,7 @@ public class StoryModeActivity extends AppCompatActivity {
         TextView arcName = new TextView(this);
         arcName.setText(arc.name);
         arcName.setTextSize(18);
-        arcName.setTextColor(0xFF333333);
+        arcName.setTextColor(onSurfaceColor);
         arcName.setTypeface(null, android.graphics.Typeface.BOLD);
 
         TextView statusText = new TextView(this);
@@ -135,7 +144,8 @@ public class StoryModeActivity extends AppCompatActivity {
             statusText.setTextColor(0xFF4CAF50);
         } else {
             statusText.setText("🔒 Costs " + arc.starsRequired + " stars to unlock");
-            statusText.setTextColor(0xFF999999);
+            statusText.setTextColor(onSurfaceColor);
+            statusText.setAlpha(0.6f);
         }
         statusText.setTextSize(14);
         statusText.setPadding(0, 5, 0, 0);

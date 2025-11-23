@@ -2,6 +2,7 @@ package com.example.slidr;
 
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -157,10 +158,18 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void addGameHistoryCard(GameHistory game) {
+        // Get theme colors
+        TypedValue typedValue = new TypedValue();
+        getTheme().resolveAttribute(com.google.android.material.R.attr.colorSurfaceVariant, typedValue, true);
+        int surfaceColor = typedValue.data;
+
+        getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue, true);
+        int onSurfaceColor = typedValue.data;
+
         // Main card container
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
-        card.setBackgroundColor(game.isCompleted() ? 0xFFE8F5E9 : 0xFFFFEBEE);
+        card.setBackgroundColor(surfaceColor);
         card.setPadding(25, 25, 25, 25);
 
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
@@ -216,7 +225,8 @@ public class HistoryActivity extends AppCompatActivity {
                 dateFormat.format(gameDate),
                 timeFormat.format(gameDate)));
         dateText.setTextSize(14);
-        dateText.setTextColor(0xFF666666);
+        dateText.setTextColor(onSurfaceColor);
+        dateText.setAlpha(0.7f);
         dateText.setPadding(0, 15, 0, 15);
 
         // Stats row
@@ -229,18 +239,21 @@ public class HistoryActivity extends AppCompatActivity {
         movesContainer.setOrientation(LinearLayout.VERTICAL);
         movesContainer.setGravity(Gravity.CENTER);
         movesContainer.setPadding(15, 15, 15, 15);
-        movesContainer.setBackgroundColor(0xFFFFFFFF);
+
+        getTheme().resolveAttribute(com.google.android.material.R.attr.colorSurface, typedValue, true);
+        movesContainer.setBackgroundColor(typedValue.data);
 
         TextView movesLabel = new TextView(this);
         movesLabel.setText("MOVES");
         movesLabel.setTextSize(12);
-        movesLabel.setTextColor(0xFF999999);
+        movesLabel.setTextColor(onSurfaceColor);
+        movesLabel.setAlpha(0.6f);
         movesLabel.setGravity(Gravity.CENTER);
 
         TextView movesValue = new TextView(this);
         movesValue.setText(String.valueOf(game.getMoves()));
         movesValue.setTextSize(24);
-        movesValue.setTextColor(0xFF333333);
+        movesValue.setTextColor(onSurfaceColor);
         movesValue.setTypeface(null, Typeface.BOLD);
         movesValue.setGravity(Gravity.CENTER);
 
@@ -252,7 +265,7 @@ public class HistoryActivity extends AppCompatActivity {
         timeContainer.setOrientation(LinearLayout.VERTICAL);
         timeContainer.setGravity(Gravity.CENTER);
         timeContainer.setPadding(15, 15, 15, 15);
-        timeContainer.setBackgroundColor(0xFFFFFFFF);
+        timeContainer.setBackgroundColor(typedValue.data);
 
         LinearLayout.LayoutParams timeParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -264,13 +277,14 @@ public class HistoryActivity extends AppCompatActivity {
         TextView timeLabel = new TextView(this);
         timeLabel.setText("TIME");
         timeLabel.setTextSize(12);
-        timeLabel.setTextColor(0xFF999999);
+        timeLabel.setTextColor(onSurfaceColor);
+        timeLabel.setAlpha(0.6f);
         timeLabel.setGravity(Gravity.CENTER);
 
         TextView timeValue = new TextView(this);
         timeValue.setText(formatTime(game.getTimeInSeconds()));
         timeValue.setTextSize(24);
-        timeValue.setTextColor(0xFF333333);
+        timeValue.setTextColor(onSurfaceColor);
         timeValue.setTypeface(null, Typeface.BOLD);
         timeValue.setGravity(Gravity.CENTER);
 
@@ -282,7 +296,7 @@ public class HistoryActivity extends AppCompatActivity {
         gridContainer.setOrientation(LinearLayout.VERTICAL);
         gridContainer.setGravity(Gravity.CENTER);
         gridContainer.setPadding(15, 15, 15, 15);
-        gridContainer.setBackgroundColor(0xFFFFFFFF);
+        gridContainer.setBackgroundColor(typedValue.data);
 
         LinearLayout.LayoutParams gridParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -294,13 +308,14 @@ public class HistoryActivity extends AppCompatActivity {
         TextView gridLabel = new TextView(this);
         gridLabel.setText("GRID");
         gridLabel.setTextSize(12);
-        gridLabel.setTextColor(0xFF999999);
+        gridLabel.setTextColor(onSurfaceColor);
+        gridLabel.setAlpha(0.6f);
         gridLabel.setGravity(Gravity.CENTER);
 
         TextView gridValue = new TextView(this);
         gridValue.setText(game.getGridSize() + "×" + game.getGridSize());
         gridValue.setTextSize(24);
-        gridValue.setTextColor(0xFF333333);
+        gridValue.setTextColor(onSurfaceColor);
         gridValue.setTypeface(null, Typeface.BOLD);
         gridValue.setGravity(Gravity.CENTER);
 

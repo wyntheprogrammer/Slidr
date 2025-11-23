@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:background="#FFFFFF"
+    android:background="?attr/colorSurface"
     android:padding="32dp">
 
     <TextView
@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:text="Classic Mode"
         android:textSize="36sp"
-        android:textColor="#333333"
+        android:textColor="?attr/colorOnSurface"
         android:textStyle="bold"
         android:layout_marginBottom="50dp"/>
 
@@ -21,7 +21,8 @@
         android:layout_height="wrap_content"
         android:text="Select Difficulty"
         android:textSize="20sp"
-        android:textColor="#666666"
+        android:textColor="?attr/colorOnSurface"
+        android:alpha="0.7"
         android:layout_marginBottom="30dp"/>
 
     <Button

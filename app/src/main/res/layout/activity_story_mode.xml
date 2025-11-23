@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#FFFFFF"
+    android:background="?attr/colorSurface"
     android:padding="16dp">
 
     <TextView
@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:text="Story Mode"
         android:textSize="32sp"
-        android:textColor="#333333"
+        android:textColor="?attr/colorOnSurface"
         android:textStyle="bold"
         android:layout_gravity="center"
         android:layout_marginTop="10dp"
@@ -34,7 +34,8 @@
         android:layout_height="wrap_content"
         android:text="Select an Arc"
         android:textSize="18sp"
-        android:textColor="#666666"
+        android:textColor="?attr/colorOnSurface"
+        android:alpha="0.7"
         android:layout_gravity="center"
         android:layout_marginBottom="20dp"/>
 

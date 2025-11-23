@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#FFFFFF"
+    android:background="?attr/colorSurface"
     android:padding="16dp">
 
     <TextView
@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:text="Settings"
         android:textSize="32sp"
-        android:textColor="#333333"
+        android:textColor="?attr/colorOnSurface"
         android:textStyle="bold"
         android:layout_gravity="center"
         android:layout_marginTop="10dp"
@@ -23,7 +23,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="20dp"
-        android:background="#F5F5F5"
+        android:background="?attr/colorSurfaceVariant"
         android:layout_marginBottom="20dp">
 
         <TextView
@@ -32,7 +32,7 @@
             android:layout_weight="1"
             android:text="🎵 Background Music"
             android:textSize="18sp"
-            android:textColor="#333333"
+            android:textColor="?attr/colorOnSurface"
             android:gravity="center_vertical"/>
 
         <Switch
@@ -48,7 +48,8 @@
         android:layout_height="wrap_content"
         android:text="Select Music Track"
         android:textSize="20sp"
-        android:textColor="#666666"
+        android:textColor="?attr/colorOnSurface"
+        android:alpha="0.7"
         android:layout_marginBottom="10dp"
         android:paddingStart="10dp"/>
 
@@ -71,7 +72,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="#E0E0E0"
+        android:background="?attr/colorSurfaceVariant"
         android:padding="15dp">
 
         <TextView
@@ -80,7 +81,8 @@
             android:layout_weight="1"
             android:text="Music Track"
             android:textSize="14sp"
-            android:textColor="#666666"
+            android:textColor="?attr/colorOnSurface"
+            android:alpha="0.7"
             android:textStyle="bold"/>
 
         <TextView
@@ -88,7 +90,8 @@
             android:layout_height="wrap_content"
             android:text="Action"
             android:textSize="14sp"
-            android:textColor="#666666"
+            android:textColor="?attr/colorOnSurface"
+            android:alpha="0.7"
             android:textStyle="bold"
             android:paddingEnd="20dp"/>
 

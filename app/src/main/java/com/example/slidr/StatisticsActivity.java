@@ -3,6 +3,7 @@ package com.example.slidr;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -94,7 +95,12 @@ public class StatisticsActivity extends AppCompatActivity {
     private void addStatisticsCard(Statistics stats) {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
-        card.setBackgroundColor(0xFFF5F5F5);
+
+        // Get color from theme
+        TypedValue typedValue = new TypedValue();
+        getTheme().resolveAttribute(com.google.android.material.R.attr.colorSurfaceVariant, typedValue, true);
+        card.setBackgroundColor(typedValue.data);
+
         card.setPadding(30, 30, 30, 30);
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
@@ -110,7 +116,11 @@ public class StatisticsActivity extends AppCompatActivity {
         TextView title = new TextView(this);
         title.setText(difficulty);
         title.setTextSize(22);
-        title.setTextColor(0xFF333333);
+
+        // Get text color from theme
+        getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue, true);
+        title.setTextColor(typedValue.data);
+
         title.setTypeface(title.getTypeface(), Typeface.BOLD);
 
         TextView details = new TextView(this);
@@ -131,7 +141,8 @@ public class StatisticsActivity extends AppCompatActivity {
 
         details.setText(detailsText);
         details.setTextSize(16);
-        details.setTextColor(0xFF666666);
+        details.setTextColor(typedValue.data);
+        details.setAlpha(0.8f);
         details.setPadding(0, 10, 0, 0);
 
         card.addView(title);

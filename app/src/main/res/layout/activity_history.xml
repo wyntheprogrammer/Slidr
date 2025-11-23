@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F5F5"
+    android:background="?attr/colorSurface"
     android:padding="16dp">
 
     <!-- Header -->
@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:text="Game History"
         android:textSize="32sp"
-        android:textColor="#333333"
+        android:textColor="?attr/colorOnSurface"
         android:textStyle="bold"
         android:layout_gravity="center"
         android:layout_marginTop="10dp"
@@ -25,7 +25,8 @@
         android:layout_height="wrap_content"
         android:text="Total Games: 0"
         android:textSize="16sp"
-        android:textColor="#666666"
+        android:textColor="?attr/colorOnSurface"
+        android:alpha="0.7"
         android:layout_gravity="center"
         android:layout_marginBottom="20dp"/>
 
@@ -101,7 +102,8 @@
                 android:layout_height="wrap_content"
                 android:text="No game history yet.\n\n🎮\n\nStart playing to see your game history!"
                 android:textSize="18sp"
-                android:textColor="#999999"
+                android:textColor="?attr/colorOnSurface"
+                android:alpha="0.5"
                 android:textAlignment="center"
                 android:layout_gravity="center"
                 android:padding="40dp"

@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="32dp"
-    android:background="#FFFFFF"
+    android:background="?attr/colorSurface"
     android:gravity="center">
 
     <TextView
@@ -24,14 +24,16 @@
         android:layout_height="wrap_content"
         android:text="Difficulty: Easy (3x3)"
         android:textSize="20sp"
-        android:textColor="#666666"
+        android:textColor="?attr/colorOnSurface"
+        android:alpha="0.7"
         android:textAlignment="center"
         android:layout_marginBottom="24dp"/>
 
     <View
         android:layout_width="match_parent"
         android:layout_height="2dp"
-        android:background="#E0E0E0"
+        android:background="?attr/colorOnSurface"
+        android:alpha="0.2"
         android:layout_marginBottom="20dp"/>
 
     <TextView
@@ -40,7 +42,7 @@
         android:layout_height="wrap_content"
         android:text="Moves: 0\nTime: 00:00"
         android:textSize="20sp"
-        android:textColor="#333333"
+        android:textColor="?attr/colorOnSurface"
         android:textAlignment="center"
         android:lineSpacingExtra="8dp"
         android:layout_marginBottom="20dp"/>
@@ -48,7 +50,8 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="2dp"
-        android:background="#E0E0E0"
+        android:background="?attr/colorOnSurface"
+        android:alpha="0.2"
         android:layout_marginBottom="20dp"/>
 
     <TextView
