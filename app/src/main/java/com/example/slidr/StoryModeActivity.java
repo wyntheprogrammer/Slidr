@@ -27,7 +27,7 @@ public class StoryModeActivity extends AppCompatActivity {
     private AppDatabase database;
     private String storyId;
     private StoryData.StoryMode storyMode;
-    private LinearLayout arcsContainer;
+    private LinearLayout storiesContainer;
     private TextView starsText;
     private int currentTotalStars;
 
@@ -42,20 +42,20 @@ public class StoryModeActivity extends AppCompatActivity {
 
         TextView titleText = findViewById(R.id.tvStoryTitle);
         starsText = findViewById(R.id.tvStarsDisplay);
-        arcsContainer = findViewById(R.id.arcsContainer);
+        storiesContainer = findViewById(R.id.storiesContainer);
         Button backBtn = findViewById(R.id.btnBack);
 
         titleText.setText(storyMode.name);
         backBtn.setOnClickListener(v -> finish());
 
-        loadArcs();
+        loadStories();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         loadTotalStars();
-        loadArcs();
+        loadStories();
     }
 
     private void loadTotalStars() {
@@ -70,24 +70,24 @@ public class StoryModeActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void loadArcs() {
+    private void loadStories() {
         new Thread(() -> {
             List<PuzzleUnlock> unlocks = database.gameDao().getStoryModeProgress(storyId);
 
             runOnUiThread(() -> {
-                arcsContainer.removeAllViews();
+                storiesContainer.removeAllViews();
 
-                for (int i = 0; i < storyMode.arcs.length; i++) {
-                    StoryData.Arc arc = storyMode.arcs[i];
+                for (int i = 0; i < storyMode.stories.length; i++) {
+                    StoryData.Story story = storyMode.stories[i];
                     PuzzleUnlock unlock = unlocks.get(i);
 
-                    addArcCard(arc, unlock, i);
+                    addStoryCard(story, unlock, i);
                 }
             });
         }).start();
     }
 
-    private void addArcCard(StoryData.Arc arc, PuzzleUnlock unlock, int arcIndex) {
+    private void addStoryCard(StoryData.Story story, PuzzleUnlock unlock, int storyIndex) {
         // Get theme colors
         TypedValue typedValue = new TypedValue();
         getTheme().resolveAttribute(com.google.android.material.R.attr.colorSurfaceVariant, typedValue, true);
@@ -115,7 +115,7 @@ public class StoryModeActivity extends AppCompatActivity {
         imageParams.setMargins(0, 0, 20, 0);
         imageView.setLayoutParams(imageParams);
         imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        imageView.setImageResource(arc.imageResId);
+        imageView.setImageResource(story.imageResId);
 
         if (!unlock.isUnlocked()) {
             imageView.setAlpha(0.3f);
@@ -131,11 +131,11 @@ public class StoryModeActivity extends AppCompatActivity {
         );
         infoLayout.setLayoutParams(infoParams);
 
-        TextView arcName = new TextView(this);
-        arcName.setText(arc.name);
-        arcName.setTextSize(18);
-        arcName.setTextColor(onSurfaceColor);
-        arcName.setTypeface(null, android.graphics.Typeface.BOLD);
+        TextView storyName = new TextView(this);
+        storyName.setText(story.name);
+        storyName.setTextSize(18);
+        storyName.setTextColor(onSurfaceColor);
+        storyName.setTypeface(null, android.graphics.Typeface.BOLD);
 
         TextView statusText = new TextView(this);
         if (unlock.isUnlocked()) {
@@ -143,14 +143,14 @@ public class StoryModeActivity extends AppCompatActivity {
             statusText.setText(stars + " | " + unlock.getStarsEarned() + "/3 Stars");
             statusText.setTextColor(0xFF4CAF50);
         } else {
-            statusText.setText("🔒 Costs " + arc.starsRequired + " stars to unlock");
+            statusText.setText("🔒 Costs " + story.starsRequired + " stars to unlock");
             statusText.setTextColor(onSurfaceColor);
             statusText.setAlpha(0.6f);
         }
         statusText.setTextSize(14);
         statusText.setPadding(0, 5, 0, 0);
 
-        infoLayout.addView(arcName);
+        infoLayout.addView(storyName);
         infoLayout.addView(statusText);
 
         // Action button (Play or Unlock)
@@ -166,34 +166,34 @@ public class StoryModeActivity extends AppCompatActivity {
             actionBtn.setBackgroundColor(storyMode.color);
             actionBtn.setTextColor(Color.WHITE);
             actionBtn.setOnClickListener(v -> {
-                Intent intent = new Intent(this, ArcDifficultyActivity.class);
+                Intent intent = new Intent(this, StoryDifficultyActivity.class);
                 intent.putExtra("STORY_ID", storyId);
-                intent.putExtra("ARC_INDEX", arcIndex);
-                intent.putExtra("ARC_NAME", arc.name);
-                intent.putExtra("IMAGE_RES_ID", arc.imageResId);
+                intent.putExtra("STORY_INDEX", storyIndex);
+                intent.putExtra("story_NAME", story.name);
+                intent.putExtra("IMAGE_RES_ID", story.imageResId);
                 startActivity(intent);
             });
         } else {
             actionBtn.setText("Unlock");
             actionBtn.setBackgroundColor(0xFF2196F3);
             actionBtn.setTextColor(Color.WHITE);
-            actionBtn.setOnClickListener(v -> showUnlockDialog(arc, unlock, arcIndex));
+            actionBtn.setOnClickListener(v -> showUnlockDialog(story, unlock, storyIndex));
         }
 
         card.addView(imageView);
         card.addView(infoLayout);
         card.addView(actionBtn);
 
-        arcsContainer.addView(card);
+        storiesContainer.addView(card);
     }
 
-    private void showUnlockDialog(StoryData.Arc arc, PuzzleUnlock unlock, int arcIndex) {
+    private void showUnlockDialog(StoryData.Story story, PuzzleUnlock unlock, int storyIndex) {
         // Check if user has enough stars
-        if (currentTotalStars < arc.starsRequired) {
+        if (currentTotalStars < story.starsRequired) {
             new AlertDialog.Builder(this)
                     .setTitle("Not Enough Stars")
                     .setMessage(String.format("You need %d stars to unlock %s.\n\nYou currently have %d stars.\nNeed %d more stars!",
-                            arc.starsRequired, arc.name, currentTotalStars, arc.starsRequired - currentTotalStars))
+                            story.starsRequired, story.name, currentTotalStars, story.starsRequired - currentTotalStars))
                     .setPositiveButton("OK", null)
                     .show();
             return;
@@ -201,29 +201,29 @@ public class StoryModeActivity extends AppCompatActivity {
 
         // Show confirmation dialog
         new AlertDialog.Builder(this)
-                .setTitle("Unlock Arc")
+                .setTitle("Unlock Story")
                 .setMessage(String.format("Unlock %s?\n\nCost: %d ⭐\nYour Stars: %d ⭐\nRemaining: %d ⭐",
-                        arc.name, arc.starsRequired, currentTotalStars, currentTotalStars - arc.starsRequired))
-                .setPositiveButton("Unlock", (dialog, which) -> unlockArc(arc, unlock, arcIndex))
+                        story.name, story.starsRequired, currentTotalStars, currentTotalStars - story.starsRequired))
+                .setPositiveButton("Unlock", (dialog, which) -> unlockStory(story, unlock, storyIndex))
                 .setNegativeButton("Cancel", null)
                 .show();
     }
 
-    private void unlockArc(StoryData.Arc arc, PuzzleUnlock unlock, int arcIndex) {
+    private void unlockStory(StoryData.Story story, PuzzleUnlock unlock, int storyIndex) {
         new Thread(() -> {
             // Deduct stars from user progress
             UserProgress progress = database.gameDao().getUserProgress();
-            progress.setTotalStars(progress.getTotalStars() - arc.starsRequired);
+            progress.setTotalStars(progress.getTotalStars() - story.starsRequired);
             database.gameDao().updateUserProgress(progress);
 
-            // Unlock the arc
+            // Unlock the story
             unlock.setUnlocked(true);
             database.gameDao().updatePuzzleUnlock(unlock);
 
             runOnUiThread(() -> {
-                Toast.makeText(this, arc.name + " unlocked! " + arc.starsRequired + " stars spent.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, story.name + " unlocked! " + story.starsRequired + " stars spent.", Toast.LENGTH_LONG).show();
                 loadTotalStars();
-                loadArcs();
+                loadStories();
             });
         }).start();
     }

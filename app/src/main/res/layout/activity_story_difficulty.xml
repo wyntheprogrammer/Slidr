@@ -8,17 +8,17 @@
     android:padding="32dp">
 
     <TextView
-        android:id="@+id/tvArcName"
+        android:id="@+id/tvStoryName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Arc Name"
+        android:text="Story Name"
         android:textSize="28sp"
         android:textColor="?attr/colorOnSurface"
         android:textStyle="bold"
         android:layout_marginBottom="20dp"/>
 
     <ImageView
-        android:id="@+id/ivArcPreview"
+        android:id="@+id/ivStoryPreview"
         android:layout_width="200dp"
         android:layout_height="200dp"
         android:scaleType="centerCrop"

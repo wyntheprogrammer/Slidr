@@ -33,7 +33,7 @@
             android:name=".SettingsActivity"
             android:exported="false" />
         <activity
-            android:name=".ArcDifficultyActivity"
+            android:name=".StoryDifficultyActivity"
             android:exported="false" />
         <activity
             android:name=".StatisticsActivity"

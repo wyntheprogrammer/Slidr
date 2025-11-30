@@ -46,8 +46,8 @@ public class ImageGameActivity extends AppCompatActivity {
 
     private AppDatabase database;
     private String storyId;
-    private int arcIndex;
-    private String arcName;
+    private int storyIndex;
+    private String storyName;
     private int imageResId;
     private String difficulty;
     private int starsToEarn;
@@ -64,8 +64,8 @@ public class ImageGameActivity extends AppCompatActivity {
         database = AppDatabase.getInstance(this);
 
         storyId = getIntent().getStringExtra("STORY_ID");
-        arcIndex = getIntent().getIntExtra("ARC_INDEX", 0);
-        arcName = getIntent().getStringExtra("ARC_NAME");
+        storyIndex = getIntent().getIntExtra("STORY_INDEX", 0);
+        storyName = getIntent().getStringExtra("STORY_NAME");
         imageResId = getIntent().getIntExtra("IMAGE_RES_ID", 0);
         difficulty = getIntent().getStringExtra("DIFFICULTY");
         starsToEarn = getIntent().getIntExtra("STARS_TO_EARN", 1);
@@ -75,11 +75,11 @@ public class ImageGameActivity extends AppCompatActivity {
         movesText = findViewById(R.id.tvMoves);
         timerText = findViewById(R.id.tvTimer);
         difficultyText = findViewById(R.id.tvDifficulty);
-        TextView titleText = findViewById(R.id.tvArcTitle);
+        TextView titleText = findViewById(R.id.tvStoryTitle);
         Button shuffleBtn = findViewById(R.id.btnShuffle);
         Button backBtn = findViewById(R.id.btnBack);
 
-        titleText.setText(arcName);
+        titleText.setText(storyName);
 
         String diffText = difficulty.substring(0, 1).toUpperCase() + difficulty.substring(1);
         String stars = "⭐".repeat(starsToEarn);
@@ -92,7 +92,7 @@ public class ImageGameActivity extends AppCompatActivity {
 
         loadImage();
         initializeGame();
-        startArcMusic();
+        startStoryMusic();
 
         shuffleBtn.setOnClickListener(v -> {
             new AlertDialog.Builder(this)
@@ -318,14 +318,15 @@ public class ImageGameActivity extends AppCompatActivity {
     private void onGameCompleted() {
         long timeInSeconds = elapsedTime / 1000;
 
-        // Update database - reward stars based on difficulty
+        // Update database - FIXED: Only award stars if user hasn't earned them yet
         new Thread(() -> {
-            PuzzleUnlock unlock = database.gameDao().getPuzzleUnlock(storyId, arcIndex);
+            PuzzleUnlock unlock = database.gameDao().getPuzzleUnlock(storyId, storyIndex);
 
             boolean earnedNewStars = false;
             int previousStars = unlock.getStarsEarned();
             int starDifference = 0;
 
+            // FIXED: Only award stars if the current difficulty gives MORE stars than before
             if (starsToEarn > unlock.getStarsEarned()) {
                 starDifference = starsToEarn - unlock.getStarsEarned();
                 unlock.setStarsEarned(starsToEarn);
@@ -335,11 +336,9 @@ public class ImageGameActivity extends AppCompatActivity {
                 UserProgress progress = database.gameDao().getUserProgress();
                 progress.setTotalStars(progress.getTotalStars() + starDifference);
                 database.gameDao().updateUserProgress(progress);
-
-                // REMOVED: checkAndUnlockMusic() - Music is only unlocked in Settings by spending stars
             }
 
-            // Always update best scores
+            // Always update best scores (even if stars weren't earned)
             if (moves < unlock.getBestMoves()) {
                 unlock.setBestMoves(moves);
             }
@@ -354,8 +353,6 @@ public class ImageGameActivity extends AppCompatActivity {
             runOnUiThread(() -> showSuccessDialog(starsToEarn, timeInSeconds, finalEarnedStars, finalStarDifference, previousStars));
         }).start();
     }
-
-    // REMOVED: checkAndUnlockMusic() method - Music unlock is only handled in SettingsActivity
 
     private void showSuccessDialog(int stars, long timeInSeconds, boolean earnedNewStars, int starDifference, int previousStars) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -387,12 +384,16 @@ public class ImageGameActivity extends AppCompatActivity {
                     starDifference > 1 ? "s" : "",
                     previousStars,
                     stars);
-
-            // REMOVED: Music unlock message - Music is only unlocked in Settings
             rewardText.setText(rewardMessage);
         } else {
             rewardText.setVisibility(View.VISIBLE);
-            rewardText.setText("Already earned " + stars + " star" + (stars > 1 ? "s" : "") + " on this difficulty");
+            if (previousStars >= stars) {
+                // User already earned this many or more stars
+                rewardText.setText("Already earned " + previousStars + " star" + (previousStars > 1 ? "s" : "") + " on this story!\nTry a harder difficulty for more stars.");
+            } else {
+                // This shouldn't happen, but just in case
+                rewardText.setText("Keep playing to earn more stars!");
+            }
         }
 
         playAgainBtn.setOnClickListener(v -> {
@@ -462,7 +463,7 @@ public class ImageGameActivity extends AppCompatActivity {
         stopTimer();
     }
 
-    private void startArcMusic() {
+    private void startStoryMusic() {
         new Thread(() -> {
             try {
                 com.example.slidr.database.GameSettings settings = database.gameDao().getSettings();
@@ -472,8 +473,8 @@ public class ImageGameActivity extends AppCompatActivity {
                     if (currentUser != null) {
                         // Get user-specific music track
                         com.example.slidr.database.MusicTrack track =
-                                database.gameDao().getMusicForArcByUser(
-                                        currentUser.getId(), storyId, arcIndex
+                                database.gameDao().getMusicForStoryByUser(
+                                        currentUser.getId(), storyId, storyIndex
                                 );
 
                         if (track != null && track.isUnlocked()) {

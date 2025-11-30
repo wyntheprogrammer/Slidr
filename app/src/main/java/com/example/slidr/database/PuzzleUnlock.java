@@ -10,16 +10,16 @@ public class PuzzleUnlock {
 
     private int userId; // Link to User table
     private String storyMode; // "onepiece", "dragonball", "bleach"
-    private int arcIndex;
+    private int storyIndex;
     private boolean unlocked;
     private int starsEarned;
     private int bestMoves;
     private long bestTime;
 
-    public PuzzleUnlock(int userId, String storyMode, int arcIndex, boolean unlocked, int starsEarned) {
+    public PuzzleUnlock(int userId, String storyMode, int storyIndex, boolean unlocked, int starsEarned) {
         this.userId = userId;
         this.storyMode = storyMode;
-        this.arcIndex = arcIndex;
+        this.storyIndex = storyIndex;
         this.unlocked = unlocked;
         this.starsEarned = starsEarned;
         this.bestMoves = Integer.MAX_VALUE;
@@ -36,8 +36,8 @@ public class PuzzleUnlock {
     public String getStoryMode() { return storyMode; }
     public void setStoryMode(String storyMode) { this.storyMode = storyMode; }
 
-    public int getArcIndex() { return arcIndex; }
-    public void setArcIndex(int arcIndex) { this.arcIndex = arcIndex; }
+    public int getStoryIndex() { return storyIndex; }
+    public void setStoryIndex(int storyIndex) { this.storyIndex = storyIndex; }
 
     public boolean isUnlocked() { return unlocked; }
     public void setUnlocked(boolean unlocked) { this.unlocked = unlocked; }

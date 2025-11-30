@@ -8,35 +8,35 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class ArcDifficultyActivity extends AppCompatActivity {
+public class StoryDifficultyActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_arc_difficulty);
+        setContentView(R.layout.activity_story_difficulty);
 
         String storyId = getIntent().getStringExtra("STORY_ID");
-        int arcIndex = getIntent().getIntExtra("ARC_INDEX", 0);
-        String arcName = getIntent().getStringExtra("ARC_NAME");
+        int storyIndex = getIntent().getIntExtra("STORY_INDEX", 0);
+        String storyName = getIntent().getStringExtra("STORY_NAME");
         int imageResId = getIntent().getIntExtra("IMAGE_RES_ID", 0);
 
-        TextView titleText = findViewById(R.id.tvArcName);
-        ImageView previewImage = findViewById(R.id.ivArcPreview);
+        TextView titleText = findViewById(R.id.tvStoryName);
+        ImageView previewImage = findViewById(R.id.ivStoryPreview);
         Button easyBtn = findViewById(R.id.btnEasy);
         Button mediumBtn = findViewById(R.id.btnMedium);
         Button hardBtn = findViewById(R.id.btnHard);
         Button backBtn = findViewById(R.id.btnBack);
 
-        titleText.setText(arcName);
+        titleText.setText(storyName);
         previewImage.setImageResource(imageResId);
 
-        easyBtn.setOnClickListener(v -> startGame(storyId, arcIndex, arcName, imageResId, "easy", 1));
-        mediumBtn.setOnClickListener(v -> startGame(storyId, arcIndex, arcName, imageResId, "medium", 2));
-        hardBtn.setOnClickListener(v -> startGame(storyId, arcIndex, arcName, imageResId, "hard", 3));
+        easyBtn.setOnClickListener(v -> startGame(storyId, storyIndex, storyName, imageResId, "easy", 1));
+        mediumBtn.setOnClickListener(v -> startGame(storyId, storyIndex, storyName, imageResId, "medium", 2));
+        hardBtn.setOnClickListener(v -> startGame(storyId, storyIndex, storyName, imageResId, "hard", 3));
         backBtn.setOnClickListener(v -> finish());
     }
 
-    private void startGame(String storyId, int arcIndex, String arcName, int imageResId,
+    private void startGame(String storyId, int storyIndex, String storyName, int imageResId,
                            String difficulty, int starsToEarn) {
         // Set grid size based on difficulty
         int gridSize;
@@ -56,8 +56,8 @@ public class ArcDifficultyActivity extends AppCompatActivity {
 
         Intent intent = new Intent(this, ImageGameActivity.class);
         intent.putExtra("STORY_ID", storyId);
-        intent.putExtra("ARC_INDEX", arcIndex);
-        intent.putExtra("ARC_NAME", arcName);
+        intent.putExtra("STORY_INDEX", storyIndex);
+        intent.putExtra("STORY_NAME", storyName);
         intent.putExtra("IMAGE_RES_ID", imageResId);
         intent.putExtra("DIFFICULTY", difficulty);
         intent.putExtra("STARS_TO_EARN", starsToEarn);

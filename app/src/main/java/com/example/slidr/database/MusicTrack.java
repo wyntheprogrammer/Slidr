@@ -11,16 +11,16 @@ public class MusicTrack {
     private int userId; // Link to User table - ADDED FOR USER-SPECIFIC UNLOCKS
     private String trackName;
     private String storyMode; // "onepiece", "dragonball", "bleach", or "default"
-    private int arcIndex;
+    private int storyIndex;
     private int musicResId; // R.raw.music_file
     private boolean unlocked;
 
     // Constructor for database initialization (without userId)
-    public MusicTrack(String trackName, String storyMode, int arcIndex, int musicResId, boolean unlocked) {
+    public MusicTrack(String trackName, String storyMode, int storyIndex, int musicResId, boolean unlocked) {
         this.userId = 0; // Will be set when user logs in
         this.trackName = trackName;
         this.storyMode = storyMode;
-        this.arcIndex = arcIndex;
+        this.storyIndex = storyIndex;
         this.musicResId = musicResId;
         this.unlocked = unlocked;
     }
@@ -38,8 +38,8 @@ public class MusicTrack {
     public String getStoryMode() { return storyMode; }
     public void setStoryMode(String storyMode) { this.storyMode = storyMode; }
 
-    public int getArcIndex() { return arcIndex; }
-    public void setArcIndex(int arcIndex) { this.arcIndex = arcIndex; }
+    public int getStoryIndex() { return storyIndex; }
+    public void setStoryIndex(int storyIndex) { this.storyIndex = storyIndex; }
 
     public int getMusicResId() { return musicResId; }
     public void setMusicResId(int musicResId) { this.musicResId = musicResId; }

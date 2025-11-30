@@ -7,23 +7,23 @@ public class StoryData {
     public static class StoryMode {
         public String id;
         public String name;
-        public Arc[] arcs;
+        public Story[] stories;
         public int color;
 
-        public StoryMode(String id, String name, Arc[] arcs, int color) {
+        public StoryMode(String id, String name, Story[] stories, int color) {
             this.id = id;
             this.name = name;
-            this.arcs = arcs;
+            this.stories = stories;
             this.color = color;
         }
     }
 
-    public static class Arc {
+    public static class Story {
         public String name;
         public int imageResId;
-        public int starsRequired; // Stars needed to unlock this arc
+        public int starsRequired; // Stars needed to unlock this story
 
-        public Arc(String name, int imageResId, int starsRequired) {
+        public Story(String name, int imageResId, int starsRequired) {
             this.name = name;
             this.imageResId = imageResId;
             this.starsRequired = starsRequired;
@@ -36,33 +36,33 @@ public class StoryData {
                 new StoryMode(
                         "onepiece",
                         "One Piece",
-                        new Arc[] {
-                                new Arc("East Blue Saga", R.drawable.onepiece_arc1, 0), // FREE
-                                new Arc("Alabasta Saga", R.drawable.onepiece_arc2, 3),
-                                new Arc("Enies Lobby Saga", R.drawable.onepiece_arc3, 6),
-                                new Arc("Marineford Saga", R.drawable.onepiece_arc4, 9)
+                        new Story[] {
+                                new Story("The Straw Hat Promise", R.drawable.onepiece_story1, 0), // FREE
+                                new Story("Luffy Sets Sail", R.drawable.onepiece_story2, 3),
+                                new Story("The First Nakama", R.drawable.onepiece_story3, 6),
+                                new Story("Luffy vs Buggy", R.drawable.onepiece_story4, 9)
                         },
                         0xFFFF6B35 // Orange
                 ),
                 new StoryMode(
                         "dragonball",
                         "Dragon Ball Z",
-                        new Arc[] {
-                                new Arc("Saiyan Saga", R.drawable.dragonball_arc1, 0), // FREE
-                                new Arc("Frieza Saga", R.drawable.dragonball_arc2, 3),
-                                new Arc("Cell Saga", R.drawable.dragonball_arc3, 6),
-                                new Arc("Buu Saga", R.drawable.dragonball_arc4, 9)
+                        new Story[] {
+                                new Story("Raditz Arrives", R.drawable.dragonball_story1, 0), // FREE
+                                new Story("Goku vs Raditz", R.drawable.dragonball_story2, 3),
+                                new Story("Piccolo's Training", R.drawable.dragonball_story3, 6),
+                                new Story("Saiyan Warriors Arrive", R.drawable.dragonball_story4, 9)
                         },
                         0xFFFFA500 // Gold
                 ),
                 new StoryMode(
                         "bleach",
                         "Bleach",
-                        new Arc[] {
-                                new Arc("Soul Society Arc", R.drawable.bleach_arc1, 0), // FREE
-                                new Arc("Arrancar Arc", R.drawable.bleach_arc2, 3),
-                                new Arc("Fullbring Arc", R.drawable.bleach_arc3, 6),
-                                new Arc("Quincy War Arc", R.drawable.bleach_arc4, 9)
+                        new Story[] {
+                                new Story("The Substitute Shinigami", R.drawable.bleach_story1, 0), // FREE
+                                new Story("Hollow Attack", R.drawable.bleach_story2, 3),
+                                new Story("The Strange Man", R.drawable.bleach_story3, 6),
+                                new Story("Ichigo vs Renji", R.drawable.bleach_story4, 9)
                         },
                         0xFF4169E1 // Royal Blue
                 )

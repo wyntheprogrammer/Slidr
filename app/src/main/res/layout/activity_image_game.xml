@@ -7,10 +7,10 @@
     android:padding="16dp">
 
     <TextView
-        android:id="@+id/tvArcTitle"
+        android:id="@+id/tvStoryTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Arc Name"
+        android:text="Story Name"
         android:textSize="24sp"
         android:textColor="?attr/colorOnSurface"
         android:textStyle="bold"

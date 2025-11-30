@@ -99,17 +99,17 @@ public interface GameDao {
     @Update
     void updatePuzzleUnlock(PuzzleUnlock unlock);
 
-    @Query("SELECT * FROM puzzle_unlocks WHERE userId = :userId AND storyMode = :storyMode AND arcIndex = :arcIndex LIMIT 1")
-    PuzzleUnlock getPuzzleUnlockByUser(int userId, String storyMode, int arcIndex);
+    @Query("SELECT * FROM puzzle_unlocks WHERE userId = :userId AND storyMode = :storyMode AND storyIndex = :storyIndex LIMIT 1")
+    PuzzleUnlock getPuzzleUnlockByUser(int userId, String storyMode, int storyIndex);
 
-    @Query("SELECT * FROM puzzle_unlocks WHERE userId = :userId AND storyMode = :storyMode ORDER BY arcIndex ASC")
+    @Query("SELECT * FROM puzzle_unlocks WHERE userId = :userId AND storyMode = :storyMode ORDER BY storyIndex ASC")
     List<PuzzleUnlock> getStoryModeProgressByUser(int userId, String storyMode);
 
     // Get current logged-in user's puzzle unlocks
-    @Query("SELECT pu.* FROM puzzle_unlocks pu INNER JOIN users u ON pu.userId = u.id WHERE u.isLoggedIn = 1 AND pu.storyMode = :storyMode AND pu.arcIndex = :arcIndex LIMIT 1")
-    PuzzleUnlock getPuzzleUnlock(String storyMode, int arcIndex);
+    @Query("SELECT pu.* FROM puzzle_unlocks pu INNER JOIN users u ON pu.userId = u.id WHERE u.isLoggedIn = 1 AND pu.storyMode = :storyMode AND pu.storyIndex = :storyIndex LIMIT 1")
+    PuzzleUnlock getPuzzleUnlock(String storyMode, int storyIndex);
 
-    @Query("SELECT pu.* FROM puzzle_unlocks pu INNER JOIN users u ON pu.userId = u.id WHERE u.isLoggedIn = 1 AND pu.storyMode = :storyMode ORDER BY pu.arcIndex ASC")
+    @Query("SELECT pu.* FROM puzzle_unlocks pu INNER JOIN users u ON pu.userId = u.id WHERE u.isLoggedIn = 1 AND pu.storyMode = :storyMode ORDER BY pu.storyIndex ASC")
     List<PuzzleUnlock> getStoryModeProgress(String storyMode);
 
     @Query("SELECT * FROM puzzle_unlocks")
@@ -144,13 +144,13 @@ public interface GameDao {
     @Query("SELECT mt.* FROM music_tracks mt INNER JOIN users u ON mt.userId = u.id WHERE u.isLoggedIn = 1 ORDER BY mt.id ASC")
     List<MusicTrack> getAllMusicTracks();
 
-    // Get music for specific arc for specific user
-    @Query("SELECT * FROM music_tracks WHERE userId = :userId AND storyMode = :storyMode AND arcIndex = :arcIndex LIMIT 1")
-    MusicTrack getMusicForArcByUser(int userId, String storyMode, int arcIndex);
+    // Get music for specific story for specific user
+    @Query("SELECT * FROM music_tracks WHERE userId = :userId AND storyMode = :storyMode AND storyIndex = :storyIndex LIMIT 1")
+    MusicTrack getMusicForStoryByUser(int userId, String storyMode, int storyIndex);
 
-    // Get current logged-in user's music for arc
-    @Query("SELECT mt.* FROM music_tracks mt INNER JOIN users u ON mt.userId = u.id WHERE u.isLoggedIn = 1 AND mt.storyMode = :storyMode AND mt.arcIndex = :arcIndex LIMIT 1")
-    MusicTrack getMusicForArc(String storyMode, int arcIndex);
+    // Get current logged-in user's music for story
+    @Query("SELECT mt.* FROM music_tracks mt INNER JOIN users u ON mt.userId = u.id WHERE u.isLoggedIn = 1 AND mt.storyMode = :storyMode AND mt.storyIndex = :storyIndex LIMIT 1")
+    MusicTrack getMusicForStory(String storyMode, int storyIndex);
 
     // Game Settings
     @Insert
