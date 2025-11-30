@@ -318,27 +318,24 @@ public class ImageGameActivity extends AppCompatActivity {
     private void onGameCompleted() {
         long timeInSeconds = elapsedTime / 1000;
 
-        // Update database - FIXED: Only award stars if user hasn't earned them yet
+        // FIXED: Always award stars when completing a story, regardless of previous completions
         new Thread(() -> {
             PuzzleUnlock unlock = database.gameDao().getPuzzleUnlock(storyId, storyIndex);
 
-            boolean earnedNewStars = false;
             int previousStars = unlock.getStarsEarned();
-            int starDifference = 0;
 
-            // FIXED: Only award stars if the current difficulty gives MORE stars than before
+            // FIXED: User always earns stars for completing the story
+            // Update the highest stars earned if this difficulty is better
             if (starsToEarn > unlock.getStarsEarned()) {
-                starDifference = starsToEarn - unlock.getStarsEarned();
                 unlock.setStarsEarned(starsToEarn);
-                earnedNewStars = true;
-
-                // Award stars to user progress
-                UserProgress progress = database.gameDao().getUserProgress();
-                progress.setTotalStars(progress.getTotalStars() + starDifference);
-                database.gameDao().updateUserProgress(progress);
             }
 
-            // Always update best scores (even if stars weren't earned)
+            // FIXED: Always award stars to user progress
+            UserProgress progress = database.gameDao().getUserProgress();
+            progress.setTotalStars(progress.getTotalStars() + starsToEarn);
+            database.gameDao().updateUserProgress(progress);
+
+            // Always update best scores
             if (moves < unlock.getBestMoves()) {
                 unlock.setBestMoves(moves);
             }
@@ -348,13 +345,11 @@ public class ImageGameActivity extends AppCompatActivity {
 
             database.gameDao().updatePuzzleUnlock(unlock);
 
-            final boolean finalEarnedStars = earnedNewStars;
-            final int finalStarDifference = starDifference;
-            runOnUiThread(() -> showSuccessDialog(starsToEarn, timeInSeconds, finalEarnedStars, finalStarDifference, previousStars));
+            runOnUiThread(() -> showSuccessDialog(starsToEarn, timeInSeconds, previousStars));
         }).start();
     }
 
-    private void showSuccessDialog(int stars, long timeInSeconds, boolean earnedNewStars, int starDifference, int previousStars) {
+    private void showSuccessDialog(int starsEarned, long timeInSeconds, int previousHighestStars) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_success, null);
         builder.setView(dialogView);
@@ -372,29 +367,24 @@ public class ImageGameActivity extends AppCompatActivity {
 
         titleText.setText("🎉 Puzzle Complete! 🎉");
 
-        String starDisplay = "⭐".repeat(stars);
+        String starDisplay = "⭐".repeat(starsEarned);
         starsText.setText(starDisplay);
 
         statsText.setText(String.format("Moves: %d\nTime: %s", moves, formatTime(timeInSeconds)));
 
-        if (earnedNewStars) {
-            rewardText.setVisibility(View.VISIBLE);
-            String rewardMessage = String.format("🎊 +%d Star%s Earned!\nTotal: %d → %d stars",
-                    starDifference,
-                    starDifference > 1 ? "s" : "",
-                    previousStars,
-                    stars);
-            rewardText.setText(rewardMessage);
-        } else {
-            rewardText.setVisibility(View.VISIBLE);
-            if (previousStars >= stars) {
-                // User already earned this many or more stars
-                rewardText.setText("Already earned " + previousStars + " star" + (previousStars > 1 ? "s" : "") + " on this story!\nTry a harder difficulty for more stars.");
-            } else {
-                // This shouldn't happen, but just in case
-                rewardText.setText("Keep playing to earn more stars!");
-            }
+        // FIXED: Show reward message - user always earns stars
+        rewardText.setVisibility(View.VISIBLE);
+        String rewardMessage = String.format("🎊 +%d Star%s Earned! 🎊",
+                starsEarned,
+                starsEarned > 1 ? "s" : "");
+
+        // Show if this is a new highest star achievement for this story
+        if (starsEarned > previousHighestStars) {
+            rewardMessage += String.format("\n✨ New Record: %d → %d stars!",
+                    previousHighestStars, starsEarned);
         }
+
+        rewardText.setText(rewardMessage);
 
         playAgainBtn.setOnClickListener(v -> {
             dialog.dismiss();
