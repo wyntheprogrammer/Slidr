@@ -16,7 +16,7 @@ import java.util.List;
         PuzzleUnlock.class,
         MusicTrack.class,
         GameSettings.class
-}, version = 8, exportSchema = false)  // Incremented version to 8 for settings change
+}, version = 9, exportSchema = false)  // Incremented version to 9 for user-specific settings
 public abstract class AppDatabase extends RoomDatabase {
 
     private static AppDatabase instance;
@@ -41,16 +41,6 @@ public abstract class AppDatabase extends RoomDatabase {
 
     private static void initializeDefaultData(AppDatabase db) {
         new Thread(() -> {
-            // Initialize settings if not exists with music OFF and "No Music" selected
-            GameSettings settings = db.gameDao().getSettings();
-            if (settings == null) {
-                settings = new GameSettings();
-                // Ensure defaults are set correctly
-                settings.setMusicEnabled(false);
-                settings.setSelectedMusicId(-1); // "No Music"
-                db.gameDao().insertSettings(settings);
-            }
-
             // Initialize user-specific data for logged-in user
             User currentUser = db.gameDao().getLoggedInUser();
             if (currentUser != null) {
@@ -66,6 +56,16 @@ public abstract class AppDatabase extends RoomDatabase {
             if (progress == null) {
                 progress = new UserProgress(userId);
                 db.gameDao().insertUserProgress(progress);
+            }
+
+            // Initialize user-specific settings if not exists
+            GameSettings settings = db.gameDao().getSettingsByUser(userId);
+            if (settings == null) {
+                settings = new GameSettings();
+                settings.setUserId(userId);
+                settings.setMusicEnabled(false); // Default: OFF
+                settings.setSelectedMusicId(-1); // Default: "No Music"
+                db.gameDao().insertSettings(settings);
             }
 
             // Initialize story mode unlocks for this user

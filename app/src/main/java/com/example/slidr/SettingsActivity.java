@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.slidr.database.AppDatabase;
 import com.example.slidr.database.GameSettings;
 import com.example.slidr.database.MusicTrack;
+import com.example.slidr.database.User;
 import com.example.slidr.database.UserProgress;
 import com.example.slidr.utils.MusicManager;
 
@@ -32,6 +33,7 @@ public class SettingsActivity extends AppCompatActivity {
     private TextView unlockHintText;
     private int userTotalStars = 0;
     private RadioGroup radioGroup;
+    private User currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,11 +48,14 @@ public class SettingsActivity extends AppCompatActivity {
         unlockHintText = findViewById(R.id.tvUnlockHint);
         Button backBtn = findViewById(R.id.btnBack);
 
+        loadCurrentUser();
         loadSettings();
         loadUserStars();
         loadMusicTracks();
 
         musicSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (settings == null) return;
+
             settings.setMusicEnabled(isChecked);
             saveSettings();
 
@@ -89,19 +94,28 @@ public class SettingsActivity extends AppCompatActivity {
         loadMusicTracks();
     }
 
+    private void loadCurrentUser() {
+        new Thread(() -> {
+            currentUser = database.gameDao().getLoggedInUser();
+        }).start();
+    }
+
     private void loadSettings() {
         new Thread(() -> {
-            settings = database.gameDao().getSettings();
-            if (settings == null) {
+            settings = database.gameDao().getSettings(); // Gets logged-in user's settings
+            if (settings == null && currentUser != null) {
+                // Create default settings for this user
                 settings = new GameSettings();
-                // Ensure defaults: music OFF, "No Music" selected
+                settings.setUserId(currentUser.getId());
                 settings.setMusicEnabled(false);
                 settings.setSelectedMusicId(-1);
                 database.gameDao().insertSettings(settings);
             }
 
             runOnUiThread(() -> {
-                musicSwitch.setChecked(settings.isMusicEnabled());
+                if (settings != null) {
+                    musicSwitch.setChecked(settings.isMusicEnabled());
+                }
             });
         }).start();
     }
@@ -115,7 +129,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void loadMusicTracks() {
         new Thread(() -> {
-            List<MusicTrack> allTracks = database.gameDao().getAllMusicTracks();
+            List<MusicTrack> allTracks = database.gameDao().getAllMusicTracks(); // Gets logged-in user's tracks
             UserProgress progress = database.gameDao().getUserProgress();
             int totalStars = (progress != null) ? progress.getTotalStars() : 0;
 
@@ -152,7 +166,7 @@ public class SettingsActivity extends AppCompatActivity {
                 }
 
                 // Enable/disable based on music switch
-                boolean enabled = settings.isMusicEnabled();
+                boolean enabled = (settings != null) && settings.isMusicEnabled();
                 for (int i = 0; i < musicTracksContainer.getChildCount(); i++) {
                     View child = musicTracksContainer.getChildAt(i);
                     child.setEnabled(enabled);
@@ -198,13 +212,15 @@ public class SettingsActivity extends AppCompatActivity {
 
         // Right side - Radio button (should be checked by default)
         RadioButton radioButton = new RadioButton(this);
-        radioButton.setChecked(settings.getSelectedMusicId() == -1);
+        radioButton.setChecked(settings != null && settings.getSelectedMusicId() == -1);
         radioButton.setOnClickListener(v -> {
-            settings.setSelectedMusicId(-1);
-            saveSettings();
-            MusicManager.stopMusic();
-            Toast.makeText(this, "Music disabled", Toast.LENGTH_SHORT).show();
-            loadMusicTracks(); // Refresh to update radio buttons
+            if (settings != null) {
+                settings.setSelectedMusicId(-1);
+                saveSettings();
+                MusicManager.stopMusic();
+                Toast.makeText(this, "Music disabled", Toast.LENGTH_SHORT).show();
+                loadMusicTracks(); // Refresh to update radio buttons
+            }
         });
 
         row.addView(trackName);
@@ -274,16 +290,18 @@ public class SettingsActivity extends AppCompatActivity {
         if (track.isUnlocked()) {
             // Show radio button for selection
             RadioButton radioButton = new RadioButton(this);
-            radioButton.setChecked(settings.getSelectedMusicId() == track.getId());
+            radioButton.setChecked(settings != null && settings.getSelectedMusicId() == track.getId());
             radioButton.setOnClickListener(v -> {
-                settings.setSelectedMusicId(track.getId());
-                saveSettings();
+                if (settings != null) {
+                    settings.setSelectedMusicId(track.getId());
+                    saveSettings();
 
-                if (settings.isMusicEnabled()) {
-                    MusicManager.playMusic(this, track.getMusicResId());
-                    Toast.makeText(this, "Now playing: " + track.getTrackName(), Toast.LENGTH_SHORT).show();
+                    if (settings.isMusicEnabled()) {
+                        MusicManager.playMusic(this, track.getMusicResId());
+                        Toast.makeText(this, "Now playing: " + track.getTrackName(), Toast.LENGTH_SHORT).show();
+                    }
+                    loadMusicTracks(); // Refresh to update radio buttons
                 }
-                loadMusicTracks(); // Refresh to update radio buttons
             });
             rightContainer.addView(radioButton);
         } else {
@@ -375,7 +393,9 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void saveSettings() {
-        new Thread(() -> database.gameDao().updateSettings(settings)).start();
+        if (settings != null) {
+            new Thread(() -> database.gameDao().updateSettings(settings)).start();
+        }
     }
 
     @Override

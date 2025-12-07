@@ -152,13 +152,18 @@ public interface GameDao {
     @Query("SELECT mt.* FROM music_tracks mt INNER JOIN users u ON mt.userId = u.id WHERE u.isLoggedIn = 1 AND mt.storyMode = :storyMode AND mt.storyIndex = :storyIndex LIMIT 1")
     MusicTrack getMusicForStory(String storyMode, int storyIndex);
 
-    // Game Settings
+    // Game Settings - NOW USER-SPECIFIC
     @Insert
     void insertSettings(GameSettings settings);
 
     @Update
     void updateSettings(GameSettings settings);
 
-    @Query("SELECT * FROM game_settings WHERE id = 1")
+    // Get settings for specific user
+    @Query("SELECT * FROM game_settings WHERE userId = :userId LIMIT 1")
+    GameSettings getSettingsByUser(int userId);
+
+    // Get current logged-in user's settings
+    @Query("SELECT gs.* FROM game_settings gs INNER JOIN users u ON gs.userId = u.id WHERE u.isLoggedIn = 1 LIMIT 1")
     GameSettings getSettings();
 }

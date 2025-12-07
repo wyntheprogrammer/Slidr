@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.textfield.TextInputEditText;
 import com.example.slidr.database.AppDatabase;
 import com.example.slidr.database.User;
+import com.example.slidr.utils.MusicManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -263,7 +264,11 @@ public class ProfileActivity extends AppCompatActivity {
                 .setPositiveButton("Yes", (dialog, which) -> {
                     new Thread(() -> {
                         database.gameDao().logoutAllUsers();
+
                         runOnUiThread(() -> {
+                            // FIXED: Stop music when logging out
+                            MusicManager.stopMusic();
+
                             Intent intent = new Intent(this, LoginActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);
