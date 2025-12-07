@@ -13,8 +13,8 @@ public class GameSettings {
     private float musicVolume; // 0.0 to 1.0
 
     public GameSettings() {
-        this.musicEnabled = true;
-        this.selectedMusicId = -1; // -1 means default/no music
+        this.musicEnabled = false; // CHANGED: Default to OFF (was true)
+        this.selectedMusicId = -1; // -1 means "No Music" selected
         this.musicVolume = 0.7f;
     }
 

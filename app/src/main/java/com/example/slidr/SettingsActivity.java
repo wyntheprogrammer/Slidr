@@ -65,7 +65,7 @@ public class SettingsActivity extends AppCompatActivity {
                 // Stop music when switch is turned off
                 MusicManager.stopMusic();
             } else {
-                // Resume music if a track is selected
+                // Resume music if a track is selected (not "No Music")
                 if (settings.getSelectedMusicId() != -1) {
                     new Thread(() -> {
                         MusicTrack track = database.gameDao().getMusicTrack(settings.getSelectedMusicId());
@@ -94,6 +94,9 @@ public class SettingsActivity extends AppCompatActivity {
             settings = database.gameDao().getSettings();
             if (settings == null) {
                 settings = new GameSettings();
+                // Ensure defaults: music OFF, "No Music" selected
+                settings.setMusicEnabled(false);
+                settings.setSelectedMusicId(-1);
                 database.gameDao().insertSettings(settings);
             }
 
@@ -193,7 +196,7 @@ public class SettingsActivity extends AppCompatActivity {
         );
         trackName.setLayoutParams(nameParams);
 
-        // Right side - Radio button
+        // Right side - Radio button (should be checked by default)
         RadioButton radioButton = new RadioButton(this);
         radioButton.setChecked(settings.getSelectedMusicId() == -1);
         radioButton.setOnClickListener(v -> {

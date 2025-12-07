@@ -92,7 +92,7 @@ public class ImageGameActivity extends AppCompatActivity {
 
         loadImage();
         initializeGame();
-        startStoryMusic();
+        // Don't auto-play story music - let user's selected music continue
 
         shuffleBtn.setOnClickListener(v -> {
             new AlertDialog.Builder(this)
@@ -318,19 +318,17 @@ public class ImageGameActivity extends AppCompatActivity {
     private void onGameCompleted() {
         long timeInSeconds = elapsedTime / 1000;
 
-        // FIXED: Always award stars when completing a story, regardless of previous completions
         new Thread(() -> {
             PuzzleUnlock unlock = database.gameDao().getPuzzleUnlock(storyId, storyIndex);
 
             int previousStars = unlock.getStarsEarned();
 
-            // FIXED: User always earns stars for completing the story
             // Update the highest stars earned if this difficulty is better
             if (starsToEarn > unlock.getStarsEarned()) {
                 unlock.setStarsEarned(starsToEarn);
             }
 
-            // FIXED: Always award stars to user progress
+            // Always award stars to user progress
             UserProgress progress = database.gameDao().getUserProgress();
             progress.setTotalStars(progress.getTotalStars() + starsToEarn);
             database.gameDao().updateUserProgress(progress);
@@ -357,7 +355,6 @@ public class ImageGameActivity extends AppCompatActivity {
         AlertDialog dialog = builder.create();
         dialog.setCancelable(false);
 
-        // Set up views
         TextView titleText = dialogView.findViewById(R.id.tvSuccessTitle);
         TextView starsText = dialogView.findViewById(R.id.tvStarsEarned);
         TextView statsText = dialogView.findViewById(R.id.tvGameStats);
@@ -372,13 +369,11 @@ public class ImageGameActivity extends AppCompatActivity {
 
         statsText.setText(String.format("Moves: %d\nTime: %s", moves, formatTime(timeInSeconds)));
 
-        // FIXED: Show reward message - user always earns stars
         rewardText.setVisibility(View.VISIBLE);
         String rewardMessage = String.format("🎊 +%d Star%s Earned! 🎊",
                 starsEarned,
                 starsEarned > 1 ? "s" : "");
 
-        // Show if this is a new highest star achievement for this story
         if (starsEarned > previousHighestStars) {
             rewardMessage += String.format("\n✨ New Record: %d → %d stars!",
                     previousHighestStars, starsEarned);
@@ -445,38 +440,13 @@ public class ImageGameActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         stopTimer();
+        // Don't pause music - let it keep playing
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         stopTimer();
-    }
-
-    private void startStoryMusic() {
-        new Thread(() -> {
-            try {
-                com.example.slidr.database.GameSettings settings = database.gameDao().getSettings();
-                if (settings != null && settings.isMusicEnabled()) {
-                    // Get current user
-                    User currentUser = database.gameDao().getLoggedInUser();
-                    if (currentUser != null) {
-                        // Get user-specific music track
-                        com.example.slidr.database.MusicTrack track =
-                                database.gameDao().getMusicForStoryByUser(
-                                        currentUser.getId(), storyId, storyIndex
-                                );
-
-                        if (track != null && track.isUnlocked()) {
-                            runOnUiThread(() -> {
-                                MusicManager.playMusic(this, track.getMusicResId());
-                            });
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
+        // Don't stop music - let it continue playing
     }
 }

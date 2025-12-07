@@ -75,7 +75,7 @@ public class GameActivity extends AppCompatActivity {
 
         loadBestScores();
         initializeGame();
-        startBackgroundMusic();
+        // REMOVED: startBackgroundMusic(); - No auto-play on game start
 
         shuffleBtn.setOnClickListener(v -> {
             new AlertDialog.Builder(this)
@@ -83,13 +83,7 @@ public class GameActivity extends AppCompatActivity {
                     .setMessage("Start a new game? Current progress will be lost.")
                     .setPositiveButton("Yes", (dialog, which) -> {
                         stopTimer();
-                        moves = 0;
-                        elapsedTime = 0;
-                        moveHistory.clear();
-                        updateMovesText();
-                        updateTimerText();
-                        shufflePuzzle();
-                        startTimer();
+                        initializeGame(); // FIX: Call initializeGame() instead of manual reset
                     })
                     .setNegativeButton("No", null)
                     .show();
@@ -109,6 +103,14 @@ public class GameActivity extends AppCompatActivity {
         gridLayout.removeAllViews();
 
         int tileSize = 900 / gridSize;
+
+        // Reset game state
+        moves = 0;
+        elapsedTime = 0;
+        moveHistory.clear();
+
+        // Create new button array
+        buttons = new Button[gridSize][gridSize];
 
         for (int i = 0; i < gridSize; i++) {
             for (int j = 0; j < gridSize; j++) {
@@ -147,9 +149,6 @@ public class GameActivity extends AppCompatActivity {
             }
         }
 
-        moves = 0;
-        elapsedTime = 0;
-        moveHistory.clear();
         updateMovesText();
         updateTimerText();
         shufflePuzzle();
@@ -311,13 +310,7 @@ public class GameActivity extends AppCompatActivity {
 
         playAgainBtn.setOnClickListener(v -> {
             dialog.dismiss();
-            moves = 0;
-            elapsedTime = 0;
-            moveHistory.clear();
-            updateMovesText();
-            updateTimerText();
-            shufflePuzzle();
-            startTimer();
+            initializeGame(); // FIX: Use initializeGame() for proper reset
         });
 
         backBtn.setOnClickListener(v -> {
@@ -479,42 +472,20 @@ public class GameActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         stopTimer();
-        MusicManager.pauseMusic();
+        // Don't pause music - let it keep playing
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        MusicManager.resumeMusic();
-
-        if (!MusicManager.isPlaying()) {
-            startBackgroundMusic();
-        }
+        // Music continues naturally, no action needed
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         stopTimer();
-        MusicManager.stopMusic();
-    }
-
-    private void startBackgroundMusic() {
-        new Thread(() -> {
-            try {
-                com.example.slidr.database.GameSettings settings = database.gameDao().getSettings();
-                if (settings != null && settings.isMusicEnabled() && settings.getSelectedMusicId() != -1) {
-                    com.example.slidr.database.MusicTrack track = database.gameDao().getMusicTrack(settings.getSelectedMusicId());
-                    if (track != null && track.isUnlocked()) {
-                        runOnUiThread(() -> {
-                            MusicManager.playMusic(this, track.getMusicResId());
-                        });
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
+        // Don't stop music - let it continue playing across all activities
     }
 
     // Helper class for undo feature

@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private GameSettings settings;
     private User currentUser;
     private boolean isGuestMode = false;
+    private boolean isFirstLaunch = true; // Track if this is first launch
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +51,9 @@ public class MainActivity extends AppCompatActivity {
         // Load user info and initialize their data
         loadUserInfo();
         updateMusicButton();
+
+        // Auto-play last selected music for returning users (not first-time users)
+        autoPlayLastSelectedMusic();
 
         // Classic mode
         classicBtn.setOnClickListener(v -> {
@@ -139,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        isFirstLaunch = false; // After first onCreate, it's no longer first launch
         loadTotalStars();
         loadUserInfo();
         updateMusicButton();
@@ -148,9 +153,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (isFinishing()) {
-            MusicManager.stopMusic();
-        }
+        // Don't stop music - let it continue playing
     }
 
     private void loadUserInfo() {
@@ -222,6 +225,52 @@ public class MainActivity extends AppCompatActivity {
                         musicButton.setImageResource(android.R.drawable.ic_lock_silent_mode);
                     }
                 });
+            }
+        }).start();
+    }
+
+    /**
+     * Auto-play the last selected music for returning users
+     * Only plays if:
+     * 1. This is the first launch (onCreate)
+     * 2. Music is enabled
+     * 3. A valid music track is selected (not "No Music")
+     * 4. Music is not already playing
+     */
+    private void autoPlayLastSelectedMusic() {
+        if (!isFirstLaunch) {
+            return; // Only auto-play on first launch
+        }
+
+        new Thread(() -> {
+            try {
+                GameSettings settings = database.gameDao().getSettings();
+
+                // Check if this is a new user (first time ever)
+                boolean isNewUser = (settings == null);
+
+                if (isNewUser) {
+                    // First-time user: Do NOT auto-play, they should see music OFF
+                    return;
+                }
+
+                // Returning user: Auto-play their last selected music
+                if (settings != null &&
+                        settings.isMusicEnabled() &&
+                        settings.getSelectedMusicId() != -1 &&
+                        !MusicManager.isPlaying()) {
+
+                    com.example.slidr.database.MusicTrack track =
+                            database.gameDao().getMusicTrack(settings.getSelectedMusicId());
+
+                    if (track != null && track.isUnlocked()) {
+                        runOnUiThread(() -> {
+                            MusicManager.playMusic(this, track.getMusicResId());
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }).start();
     }

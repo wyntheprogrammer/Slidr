@@ -16,7 +16,7 @@ import java.util.List;
         PuzzleUnlock.class,
         MusicTrack.class,
         GameSettings.class
-}, version = 7, exportSchema = false)  // Incremented version to 7
+}, version = 8, exportSchema = false)  // Incremented version to 8 for settings change
 public abstract class AppDatabase extends RoomDatabase {
 
     private static AppDatabase instance;
@@ -41,10 +41,14 @@ public abstract class AppDatabase extends RoomDatabase {
 
     private static void initializeDefaultData(AppDatabase db) {
         new Thread(() -> {
-            // Initialize settings if not exists
+            // Initialize settings if not exists with music OFF and "No Music" selected
             GameSettings settings = db.gameDao().getSettings();
             if (settings == null) {
-                db.gameDao().insertSettings(new GameSettings());
+                settings = new GameSettings();
+                // Ensure defaults are set correctly
+                settings.setMusicEnabled(false);
+                settings.setSelectedMusicId(-1); // "No Music"
+                db.gameDao().insertSettings(settings);
             }
 
             // Initialize user-specific data for logged-in user
